@@ -18,7 +18,7 @@ data_all <- read_csv(file = '~/Research - Lives on HD/Covid Canceled Medical App
   
 data <- 
   data_all %>%
-  select(adh_cancer_apt_T1, adh_cancer_apt_T2, adh_cancer_apt_T3,
+  select(record_id, adh_cancer_apt_T1, adh_cancer_apt_T2, adh_cancer_apt_T3,
          adh_cancer_you_T1, adh_cancer_you_T2, adh_cancer_you_T3,
          adh_cancer_test_T1, adh_cancer_test_T2, adh_cancer_test_T3,
          adh_cancer_test_who_T1, adh_cancer_test_who_T2, adh_cancer_test_who_T3) %>%
