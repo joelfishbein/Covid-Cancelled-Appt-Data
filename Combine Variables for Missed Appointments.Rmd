@@ -7,7 +7,7 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 library(here)
-
+library(pander)
 
 ```
 
@@ -82,8 +82,66 @@ data <-
          Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My provider"),
          Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My provider"))
 
-table(data$Any_Provider_Cancelled_Appt_T3)
+#table(data$Any_Provider_Cancelled_Appt_T3)
 
 View(data)
+
+```
+
+
+# Write out new data 
+
+## Create subset of dataset
+
+First, just isolate the variables we created that are new and that we want to export
+
+```{r}
+
+colnames(data)
+
+data_to_export <- data %>%
+  select(record_id, 
+         Any_Self_Cancelled_Appt_T1,    
+         Any_Self_Cancelled_Appt_T2,  
+         Any_Self_Cancelled_Appt_T3,
+         Any_Provider_Cancelled_Appt_T1,
+         Any_Provider_Cancelled_Appt_T2,
+         Any_Provider_Cancelled_Appt_T3)
+
+readr::write_csv(x = data_to_export, 
+                 file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.csv')
+
+
+```
+
+# Examine frequencies
+
+----------------------------------------------------------
+            Type               Timepoint   trues   falses 
+----------------------------- ----------- ------- --------
+ Any_Provider_Cancelled_Appt       1        65       81   
+
+ Any_Provider_Cancelled_Appt       2        47       93   
+
+ Any_Provider_Cancelled_Appt       3        11      109   
+
+   Any_Self_Cancelled_Appt         1        49       97   
+
+   Any_Self_Cancelled_Appt         2        45       95   
+
+   Any_Self_Cancelled_Appt         3        27       93   
+----------------------------------------------------------
+
+```{r}
+
+data_to_export %>%
+  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3, 
+               names_to = c('Type','Timepoint'),
+               names_pattern = '(.*)_T(.*)') %>%
+  group_by(Type, Timepoint) %>%
+  summarise(trues = sum(value == 'TRUE', na.rm = TRUE),
+            falses = sum(value == 'FALSE', na.rm = TRUE)) %>%
+  pander()
+  
 
 ```
