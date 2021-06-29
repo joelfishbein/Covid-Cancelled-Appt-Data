@@ -96,10 +96,12 @@ View(data)
 First, just isolate the variables we created that are new and that we want to export
 
 ```{r}
-
-colnames(data)
+# remind myself what the names of the columns are that we will export
+#colnames(data)
 
 data_to_export <- data %>%
+  
+  # select just the variables we want
   select(record_id, 
          Any_Self_Cancelled_Appt_T1,    
          Any_Self_Cancelled_Appt_T2,  
@@ -108,6 +110,7 @@ data_to_export <- data %>%
          Any_Provider_Cancelled_Appt_T2,
          Any_Provider_Cancelled_Appt_T3)
 
+# write to file
 readr::write_csv(x = data_to_export, 
                  file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.csv')
 
@@ -135,12 +138,21 @@ readr::write_csv(x = data_to_export,
 ```{r}
 
 data_to_export %>%
+  
+  # Lauren - check out pivot_longer() and pivot_wider() tutorials to get a sense of what this does. This command is one of the most powerful ones in R imo :). Basically what it does is reformat the data so that I can just then group and count trues/falses once rather than separately for each variable in the next lines.
   pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3, 
                names_to = c('Type','Timepoint'),
                names_pattern = '(.*)_T(.*)') %>%
+  
+  
+  # group so that we get trues/falses by type of code, by timepoint
   group_by(Type, Timepoint) %>%
+  
+  # compute number of trues/falses
   summarise(trues = sum(value == 'TRUE', na.rm = TRUE),
             falses = sum(value == 'FALSE', na.rm = TRUE)) %>%
+  
+  # display in ASCII (easy to read in RStudio)
   pander()
   
 
