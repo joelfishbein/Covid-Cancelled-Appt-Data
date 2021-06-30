@@ -114,6 +114,10 @@ data_to_export <- data %>%
 readr::write_csv(x = data_to_export, 
                  file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.csv')
 
+# write to .rds for easy import elsewhere
+
+write_rds(data_to_export, file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.rds')
+
 
 ```
 
