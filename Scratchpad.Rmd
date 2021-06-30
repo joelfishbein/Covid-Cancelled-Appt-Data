@@ -1,0 +1,120 @@
+---
+title: "Scratchpad"
+output: html_notebook
+---
+
+*NOTES FROM 6/30 meeting*
+
+Outcomes to analyze:
+1. Any self-cancelled appts - Any_Self_Cancelled_Appt
+2. Any self-cancelled screenings - Combination of adh_cancer_test_T1 and adh_cancer_test_who_T1
+3. Likelihood of getting suspicious symptom checked out (Likert) - adh_cancer_sx_T1
+4. Number of missed endocrine therapy doses - et_missed
+4b. compare change in amount missed at T1 of Covid to last REACH timepoint, for REACH participants
+5. Binge drinking (score as Yes/No?) - Any_Self_Cancelled_Appt
+6. Cannabis use - ?
+7. Exercise - continuous variable? Create variable capturing whether individuals met CDC cutoffs?
+
+Scratchpad for looking at data during meeting
+
+
+
+```{r}
+library(tidyverse)
+library(here)
+library(lme4)
+library(pander)
+library(lavaan)
+library(jtools)
+
+main_data <- read_csv(file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Raw Data/COVID Main Database All_06-17-21.csv')
+
+missed_appts <- readRDS(file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.rds')
+                        
+data <- left_join(main_data, missed_appts, by = "record_id")
+```
+
+
+```{r}
+table(data$Any_Self_Cancelled_Appt_T1)
+
+
+```
+
+
+```{r}
+
+my.model <- '
+
+Any_Self_Cancelled_Appt_T1 ~ 1
+
+'
+
+model.fit <- lavaan::sem(model = my.model,
+                         data = data)
+
+model.fit.categorical <- lavaan::sem(model = my.model,ordered = c('Any_Self_Cancelled_Appt_T1'),
+                                      
+                         data = data)
+
+summary(model.fit.categorical)
+
+
+```
+
+
+```{r}
+
+summary(lm(Any_Self_Cancelled_Appt_T2 ~ 1, data = data))
+
+
+```
+
+```{r}
+
+summ(glm(Any_Self_Cancelled_Appt_T2 ~ 1, family = 'poisson',data = data))
+
+
+summ(glm(Any_Self_Cancelled_Appt_T2 ~ gad7_mean_T2, family = 'poisson',data = data))
+
+
+```
+
+
+```{r}
+
+cbind(data$Any_Self_Cancelled_Appt_T1, 
+      data$Any_Self_Cancelled_Appt_T2, 
+      data$Any_Self_Cancelled_Appt_T1 == data$Any_Self_Cancelled_Appt_T2) %>%
+  View()
+
+```
+
+# Individual changes in cancellation behavior
+
+Cancelled at T1 and T2 = 32 individuals
+
+Cancelled at T1 but not at T2 = 17 individuals
+
+```{r}
+data %>%
+  filter(Any_Self_Cancelled_Appt_T1 == TRUE) %>%
+  filter(Any_Self_Cancelled_Appt_T2 == FALSE)
+
+
+data %>%
+  filter(Any_Self_Cancelled_Appt_T1 == TRUE) %>%
+  filter(Any_Self_Cancelled_Appt_T2 == TRUE) 
+
+
+
+```
+
+# 
+
+```{r}
+table(data$adh_alcohol4_T2)
+
+147-119
+```
+
