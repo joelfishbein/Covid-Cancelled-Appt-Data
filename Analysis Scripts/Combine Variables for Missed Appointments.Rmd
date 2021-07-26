@@ -2,7 +2,7 @@
 title: "Combine Variables for Missed Appointments"
 output: html_notebook
 ---
-
+Hi it's Lauren
 
 ```{r}
 library(tidyverse)
