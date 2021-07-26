@@ -14,7 +14,7 @@ library(pander)
 
 ```{r}
 
-data_all <- read_csv(file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Raw Data/COVID Main Database All_06-17-21.csv')
+data_all <- read_csv(file = here('Raw Data','COVID Main Database All_06-17-21.csv')
   
 data <- 
   data_all %>%
