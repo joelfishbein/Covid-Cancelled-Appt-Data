@@ -15,7 +15,41 @@ Outcomes to analyze:
 6. Cannabis use - ?
 7. Exercise - continuous variable? Create variable capturing whether individuals met CDC cutoffs?
 
-Scratchpad for looking at data during meeting
+
+*NOTES FROM 7/7/21 meeting*
+We may be able to examine mediation with variables with just 14ish observations of TRUE
+
+Potential mediators:
+- Approach-oriented coping/ EAC
+- Avoidance-oriented coping
+- Anxiety symptoms: This could go either way re: keeping vs. cancelling appointments 
+- Depression symptoms
+- Intolerance of uncertainty (3 items)
+- Loneliness (3 items)
+- Valuing questionnaire, i.e., meaning and purpose in life
+- Financial impacts of covid (YES/NO)
+
+
+*Notes from 7/19 meeting*
+
+Potential "X" variables:
+- COVID fear-overall
+- COVID cancer survivor-specific fear
+
+We could look at both of these variables separately as "X" variables given that we saw they were differentiable in the previous Slivjak et al 2021 paper, AND because we are interested in cancer-specific behaviors.
+
+Potential mediators:
+- Depression sx
+- Approach coping
+- Avoidance coping
+- Anxiety
+
+We will proceed with single mediation models first, then combine significant mediators in those models into a multiple mediation model. BUT, we expect potential collinearity issues with depression and anxiety in the model simultaneously given their high correlation.
+
+OUTCOMES:
+i.	Patient-cancelled any appointment (including cancer screening appointments)  Variable: Any_Self_Cancelled_Appt_T1
+ii.	patient-cancelled cancer screening at T1 (=15) (T2=7, T3=3); Variable: TBMade (Joel); binary outcome
+iii.	Would delay in seeking medical care for a suspicious symptom (T1=18, T2=14, T3=7 so maybe limit to T1 and T2) Variable: adh_cancer_sx_T1; binary outcome - requires some work?
 
 
 
@@ -46,14 +80,14 @@ table(data$Any_Self_Cancelled_Appt_T1)
 
 my.model <- '
 
-Any_Self_Cancelled_Appt_T1 ~ 1
+Any_Self_Cancelled_Appt_T1 ~ 
+gad7_mean_T1
+
 
 '
 
-model.fit <- lavaan::sem(model = my.model,
-                         data = data)
-
-model.fit.categorical <- lavaan::sem(model = my.model,ordered = c('Any_Self_Cancelled_Appt_T1'),
+model.fit.categorical <- lavaan::sem(model = my.model, ,
+                                     ordered = c('Any_Self_Cancelled_Appt_T1'),
                                       
                          data = data)
 
@@ -65,17 +99,10 @@ summary(model.fit.categorical)
 
 ```{r}
 
-summary(lm(Any_Self_Cancelled_Appt_T2 ~ 1, data = data))
+summ(glm(Any_Self_Cancelled_Appt_T1 ~ 1,data = data))
 
 
-```
-
-```{r}
-
-summ(glm(Any_Self_Cancelled_Appt_T2 ~ 1, family = 'poisson',data = data))
-
-
-summ(glm(Any_Self_Cancelled_Appt_T2 ~ gad7_mean_T2, family = 'poisson',data = data))
+summ(glm(Any_Self_Cancelled_Appt_T1 ~ gad7_mean_T1, data = data))
 
 
 ```
@@ -110,11 +137,22 @@ data %>%
 
 ```
 
-# 
+
+# Mediation - coverage of mediators by true/false variables
 
 ```{r}
-table(data$adh_alcohol4_T2)
 
-147-119
+data %>%
+  group_by(Any_Self_Cancelled_Appt_T1) %>%
+  summarise(n = sum(!is.na(gad7_mean_T1)),
+            mean_gad = round(mean(gad7_mean_T1, na.rm=TRUE),2),
+            sd_gad = round(sd(gad7_mean_T1, na.rm=TRUE),2))
+
 ```
 
+```{r}
+
+data %>%
+  
+
+```
