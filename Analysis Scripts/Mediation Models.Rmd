@@ -2,27 +2,135 @@
 title: "Mediation Models"
 output: html_document
 ---
+Questions:
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+Does it automatically estimate as logit because specified categorical outcome?
+
+Got error saying FIML and ML not available in categorical setting. I got rid of the "missing = " command and also did not include "estimator = " command. Per https://lavaan.ugent.be/tutorial/cat.html this is the default:
+
+  When the ordered= argument is used, lavaan will automatically switch to the WLSMV estimator: it will use diagonally weighted least squares (DWLS) to estimate the model    parameters, but it will use the full weight matrix to compute robust standard errors, and a mean- and variance-adjusted test stastistic. Other options are unweighted      least squares (ULSMV), or pairwise maximum likelihood (PML). Full information maximum likelihood is currently not supported.
+
+
+#Read in libraries and data
+
+```{r}
+library(here)
+library(tidyverse)
+library(lavaan) 
+
+
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
+data <-read.csv("CURRENT Full Covid Data.csv", header=T)
+
 ```
 
-## R Markdown
+#Generic mediation model
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+contemporaneousMediationFit <- function(predictor_var, mediator_var, outcome_var) {
+
+mediation.model.generic <- '
+
+# a path
+Mediator ~ a_path*Predictor
+
+# b path
+Outcome ~ b_path*Mediator
+
+# c prime path
+Outcome ~ cprime_path*Predictor
+
+# estimate means
+Mediator ~ mediator_change_mean*1
+Outcome ~ outcome_change_mean*1
+
+# estimate variances
+Mediator ~~ mediator_variance*Mediator
+Outcome ~~ outcome_variance*Outcome
+
+
+# tells lavaan to estimate the product of ab and its standard error and p value
+ab := a_path*b_path
+
+effect_size := ab/sqrt(outcome_variance)
+
+'
+
+# this line inserts the actual variable names into the model syntax
+# as specified above
+mediation.model <-  str_replace_all(mediation.model.generic,
+                                     c("Outcome" = outcome_var,
+                                       "Mediator" = mediator_var,
+                                       "Predictor" = predictor_var))
+
+
+#COULD PLAY AROUND WITHOUT BOOTSTRAPPING AT FIRST
+
+# model is estimated
+mediation.fit <- lavaan::sem(model = mediation.model,
+           data = data,
+            bootstrap = 1000,
+            ordered = c('Any_Self_Cancelled_Appt_T1'))
+
+return(mediation.fit)
+}
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+#T1 models for outcome = any patient-cancelled appointment
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#Predictor = General COVID-19 Fears
+
+
+#Mediator
+  #Anxiety
+
+  #By hand
+
+mediation.manual <- '
+
+# a path
+gad7_tot_T1 ~ a_path*cfi_mean_T1 
+
+# b path
+Any_Self_Cancelled_Appt_T1 ~ b_path*gad7_tot_T1
+
+# c prime path
+Any_Self_Cancelled_Appt_T1 ~ cprime_path*cfi_mean_T1
+
+# estimate means
+gad7_tot_T1 ~ mediator_change_mean*1
+Any_Self_Cancelled_Appt_T1 ~ outcome_change_mean*1
+
+# estimate variances
+gad7_tot_T1 ~~ mediator_variance*gad7_tot_T1
+Any_Self_Cancelled_Appt_T1 ~~ outcome_variance*Any_Self_Cancelled_Appt_T1
+
+
+# tells lavaan to estimate the product of ab and its standard error and p value
+ab := a_path*b_path
+
+effect_size := ab/sqrt(outcome_variance)
+
+'
+
+# model is estimated
+mediation.fit <- lavaan::sem(model = mediation.manual,
+            data = data,
+            bootstrap = 1000,
+            ordered = c('Any_Self_Cancelled_Appt_T1'))
+
+return(mediation.fit)
+
+
+  #Using generic model
+set.seed(1)
+General_Anx_Any <- contemporaneousMediationFit('cfi_mean_T1','gad7_tot_T1','Any_Self_Cancelled_Appt_T1')
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
