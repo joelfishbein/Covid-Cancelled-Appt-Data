@@ -2,14 +2,6 @@
 title: "Mediation Models"
 output: html_document
 ---
-Questions:
-
-Does it automatically estimate as logit because specified categorical outcome?
-
-Got error saying FIML and ML not available in categorical setting. I got rid of the "missing = " command and also did not include "estimator = " command. Per https://lavaan.ugent.be/tutorial/cat.html this is the default:
-
-  When the ordered= argument is used, lavaan will automatically switch to the WLSMV estimator: it will use diagonally weighted least squares (DWLS) to estimate the model    parameters, but it will use the full weight matrix to compute robust standard errors, and a mean- and variance-adjusted test stastistic. Other options are unweighted      least squares (ULSMV), or pairwise maximum likelihood (PML). Full information maximum likelihood is currently not supported.
-
 
 #Read in libraries and data
 
@@ -24,10 +16,32 @@ data <-read.csv("CURRENT Full Covid Data.csv", header=T)
 
 ```
 
-#Generic mediation model
-
+#Check data
 ```{r}
 
+summary(data$cfi_mean_T1)
+is.numeric(data$cfi_mean_T1)
+
+summary(data$gad7_tot_T1)
+is.numeric(data$gad7_tot_T1)
+
+summary(data$phq8_tot_T1)
+is.numeric(data$phq8_tot_T1)
+
+summary(data$copefull_ACS_mean_T1 )
+is.numeric(data$copefull_ACS_mean_T1)
+
+summary(data$copefull_AvCS_mean_T1)
+is.numeric(data$copefull_AvCS_mean_T1)
+
+summary(data$Any_Self_Cancelled_Appt_T1)
+
+
+
+```
+
+#Generic mediation model
+```{r}
 
 contemporaneousMediationFit <- function(predictor_var, mediator_var, outcome_var) {
 
@@ -42,36 +56,26 @@ Outcome ~ b_path*Mediator
 # c prime path
 Outcome ~ cprime_path*Predictor
 
-# estimate means
-Mediator ~ mediator_change_mean*1
-Outcome ~ outcome_change_mean*1
-
-# estimate variances
-Mediator ~~ mediator_variance*Mediator
-Outcome ~~ outcome_variance*Outcome
 
 
 # tells lavaan to estimate the product of ab and its standard error and p value
 ab := a_path*b_path
 
-effect_size := ab/sqrt(outcome_variance)
-
 '
-
-# this line inserts the actual variable names into the model syntax
-# as specified above
 mediation.model <-  str_replace_all(mediation.model.generic,
                                      c("Outcome" = outcome_var,
                                        "Mediator" = mediator_var,
                                        "Predictor" = predictor_var))
 
 
-#COULD PLAY AROUND WITHOUT BOOTSTRAPPING AT FIRST
-
 # model is estimated
 mediation.fit <- lavaan::sem(model = mediation.model,
-           data = data,
+            data = data,
             bootstrap = 1000,
+            missing = 'listwise',
+            link = 'probit',
+            se = 'bootstrap',
+            estimator = 'WLS',
             ordered = c('Any_Self_Cancelled_Appt_T1'))
 
 return(mediation.fit)
@@ -79,58 +83,89 @@ return(mediation.fit)
 
 ```
 
-
-#T1 models for outcome = any patient-cancelled appointment
+#Predictor = general COVID-19 fears, Outcome = any patient-cancelled appointment
 ```{r}
 
-#Predictor = General COVID-19 Fears
-
-
-#Mediator
-  #Anxiety
-
-  #By hand
-
-mediation.manual <- '
-
-# a path
-gad7_tot_T1 ~ a_path*cfi_mean_T1 
-
-# b path
-Any_Self_Cancelled_Appt_T1 ~ b_path*gad7_tot_T1
-
-# c prime path
-Any_Self_Cancelled_Appt_T1 ~ cprime_path*cfi_mean_T1
-
-# estimate means
-gad7_tot_T1 ~ mediator_change_mean*1
-Any_Self_Cancelled_Appt_T1 ~ outcome_change_mean*1
-
-# estimate variances
-gad7_tot_T1 ~~ mediator_variance*gad7_tot_T1
-Any_Self_Cancelled_Appt_T1 ~~ outcome_variance*Any_Self_Cancelled_Appt_T1
-
-
-# tells lavaan to estimate the product of ab and its standard error and p value
-ab := a_path*b_path
-
-effect_size := ab/sqrt(outcome_variance)
-
-'
-
-# model is estimated
-mediation.fit <- lavaan::sem(model = mediation.manual,
-            data = data,
-            bootstrap = 1000,
-            ordered = c('Any_Self_Cancelled_Appt_T1'))
-
-return(mediation.fit)
-
-
-  #Using generic model
+#Mediator = anxiety
 set.seed(1)
 General_Anx_Any <- contemporaneousMediationFit('cfi_mean_T1','gad7_tot_T1','Any_Self_Cancelled_Appt_T1')
+summary(General_Anx_Any)
 
+#Mediator = depression
+set.seed(1)
+General_Dep_Any <- contemporaneousMediationFit('cfi_mean_T1','phq8_tot_T1','Any_Self_Cancelled_Appt_T1')
+summary(General_Dep_Any)
 
+#Mediator = approach coping
+set.seed(1)
+General_Approach_Any <- contemporaneousMediationFit('cfi_mean_T1','copefull_ACS_mean_T1 ','Any_Self_Cancelled_Appt_T1')
+summary(General_Approach_Any)
+
+#Mediator = avoidance coping
+set.seed(1)
+General_Avoid_Any <- contemporaneousMediationFit('cfi_mean_T1','copefull_AvCS_mean_T1','Any_Self_Cancelled_Appt_T1')
+summary(General_Avoid_Any)
 ```
+
+#Predictor = cancer-related COVID-19 fears, Outcome = any patient-cancelled appointment
+```{r}
+#Mediator = anxiety
+set.seed(1)
+Cancer_Anx_Any <- contemporaneousMediationFit('cfi_survivor_mean_T1','gad7_tot_T1','Any_Self_Cancelled_Appt_T1')
+summary(Cancer_Anx_Any)
+
+#Mediator = depression
+set.seed(1)
+Cancer_Dep_Any <- contemporaneousMediationFit('cfi_survivor_mean_T1','phq8_tot_T1','Any_Self_Cancelled_Appt_T1')
+summary(Cancer_Dep_Any)
+
+#Mediator = approach coping
+set.seed(1)
+Cancer_Approach_Any <- contemporaneousMediationFit('cfi_survivor_mean_T1','copefull_ACS_mean_T1 ','Any_Self_Cancelled_Appt_T1')
+summary(Cancer_Approach_Any)
+
+#Mediator = avoidance coping
+set.seed(1)
+Cancer_Avoid_Any <- contemporaneousMediationFit('cfi_survivor_mean_T1','copefull_AvCS_mean_T1','Any_Self_Cancelled_Appt_T1')
+summary(Cancer_Avoid_Any)
+```
+
+#C path
+```{r}
+
+contemporaneousUnmediatedFit <- function(predictor_var, outcome_var) {
+  
+  cpath.model.generic <- '
+# c prime path
+Outcome ~ c_path*Predictor
+'
+  cpath.model <-  str_replace_all(cpath.model.generic,
+                                  c("Outcome" = outcome_var,
+                                    "Predictor" = predictor_var))
+  
+  # model is estimated
+  cpath.model.fit <- lavaan::sem(model = cpath.model,
+            data = data,
+            bootstrap = 1000,
+            missing = 'listwise',
+            link = 'probit',
+            se = 'bootstrap',
+            estimator = 'WLS',
+            ordered = c('Any_Self_Cancelled_Appt_T1'))
+  
+  return(cpath.model.fit)
+}  
+
+set.seed(1)
+cpath_General_Any <- contemporaneousUnmediatedFit('cfi_mean_T1','Any_Self_Cancelled_Appt_T1')
+summary(cpath_General_Any)
+
+set.seed(1)
+cpath_Cancer_Any <- contemporaneousUnmediatedFit('cfi_survivor_mean_T1','Any_Self_Cancelled_Appt_T1')
+summary(cpath_Cancer_Any)
+  
+```
+
+#T1 models for outcome = any patient-cancelled appointment
+`
 
