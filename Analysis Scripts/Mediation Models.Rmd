@@ -58,7 +58,7 @@ Outcome ~ cprime_path*Predictor
 
 
 
-# tells lavaan to estimate the product of ab and its standard error and p value
+# tells lavaan to estimate the product of ab and its p value
 ab := a_path*b_path
 
 '
