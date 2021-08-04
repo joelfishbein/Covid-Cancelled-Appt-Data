@@ -36,8 +36,6 @@ is.numeric(data$copefull_AvCS_mean_T1)
 
 summary(data$Any_Self_Cancelled_Appt_T1)
 
-
-
 ```
 
 #Generic mediation model
@@ -76,14 +74,14 @@ mediation.fit <- lavaan::sem(model = mediation.model,
             link = 'probit',
             se = 'bootstrap',
             estimator = 'WLS',
-            ordered = c('Any_Self_Cancelled_Appt_T1'))
+            ordered = c('Any_Self_Cancelled_Appt_T1', 'Self_Cancelled_Screening_T1'))
 
 return(mediation.fit)
 }
 
 ```
 
-#Predictor = general COVID-19 fears, Outcome = any patient-cancelled appointment
+#Time 1: Predictor = general COVID-19 fears, Outcome = any patient-cancelled appointment
 ```{r}
 
 #Mediator = anxiety
@@ -107,7 +105,7 @@ General_Avoid_Any <- contemporaneousMediationFit('cfi_mean_T1','copefull_AvCS_me
 summary(General_Avoid_Any)
 ```
 
-#Predictor = cancer-related COVID-19 fears, Outcome = any patient-cancelled appointment
+#Time 1: Predictor = cancer-related COVID-19 fears, Outcome = any patient-cancelled appointment
 ```{r}
 #Mediator = anxiety
 set.seed(1)
@@ -130,7 +128,7 @@ Cancer_Avoid_Any <- contemporaneousMediationFit('cfi_survivor_mean_T1','copefull
 summary(Cancer_Avoid_Any)
 ```
 
-#C path
+#Time 1: C path
 ```{r}
 
 contemporaneousUnmediatedFit <- function(predictor_var, outcome_var) {
@@ -151,11 +149,12 @@ Outcome ~ c_path*Predictor
             link = 'probit',
             se = 'bootstrap',
             estimator = 'WLS',
-            ordered = c('Any_Self_Cancelled_Appt_T1'))
+            ordered = c('Any_Self_Cancelled_Appt_T1', 'Self_Cancelled_Screening_T1'))
   
   return(cpath.model.fit)
 }  
 
+#Outcome = any patient-cancelled appointment
 set.seed(1)
 cpath_General_Any <- contemporaneousUnmediatedFit('cfi_mean_T1','Any_Self_Cancelled_Appt_T1')
 summary(cpath_General_Any)
@@ -163,9 +162,108 @@ summary(cpath_General_Any)
 set.seed(1)
 cpath_Cancer_Any <- contemporaneousUnmediatedFit('cfi_survivor_mean_T1','Any_Self_Cancelled_Appt_T1')
 summary(cpath_Cancer_Any)
+
+#Outcome = patient-cancelled cancer screening
+set.seed(1)
+cpath_General_Screen <- contemporaneousUnmediatedFit('cfi_mean_T1','Self_Cancelled_Screening_T1')
+summary(cpath_General_Screen)
+
+set.seed(1)
+cpath_Cancer_Screen <- contemporaneousUnmediatedFit('cfi_survivor_mean_T1','Self_Cancelled_Screening_T1')
+summary(cpath_Cancer_Screen)
+
   
 ```
+#Create true/false variable for any patient-cancelled cancer screening
+```{r}
+data <- 
+  data %>%
+  
+  mutate(adh_cancer_test_T1 = factor(adh_cancer_test_T1,
+                                     levels = c(0,1,2,3),
+                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+                  adh_cancer_test_T2 = factor(adh_cancer_test_T2,
+                                     levels = c(0,1,2,3),
+                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+                  adh_cancer_test_T3 = factor(adh_cancer_test_T3,
+                                     levels = c(0,1,2,3),
+                                    labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T1 = factor(adh_cancer_you_T1,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T2 = factor(adh_cancer_you_T2,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T3 = factor(adh_cancer_you_T3,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+    adh_cancer_test_who_T1 = fct_explicit_na(factor(adh_cancer_test_who_T1,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))),
+         adh_cancer_test_who_T2 = fct_explicit_na(factor(adh_cancer_test_who_T2,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))),
+         adh_cancer_test_who_T3 = fct_explicit_na(factor(adh_cancer_test_who_T3,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))))
 
-#T1 models for outcome = any patient-cancelled appointment
-`
+
+data <-
+  data %>%
+  mutate(Self_Cancelled_Screening_T1 = (adh_cancer_test_who_T1 == "Me"),
+         Self_Cancelled_Screening_T2 = (adh_cancer_test_who_T2 == "Me"),
+         Self_Cancelled_Screening_T3 = (adh_cancer_test_who_T3 == "Me"))
+
+table(data$Self_Cancelled_Screening_T1)
+table(data$Self_Cancelled_Screening_T2)
+table(data$Self_Cancelled_Screening_T3)
+
+```
+
+#Time 1: Predictor = general COVID-19 fears, Outcome = patient-cancelled cancer screening
+```{r}
+
+#Mediator = anxiety
+set.seed(1)
+General_Anx_Screen <- contemporaneousMediationFit('cfi_mean_T1','gad7_tot_T1','Self_Cancelled_Screening_T1')
+summary(General_Anx_Screen)
+
+#Mediator = depression
+set.seed(1)
+General_Dep_Screen <- contemporaneousMediationFit('cfi_mean_T1','phq8_tot_T1','Self_Cancelled_Screening_T1')
+summary(General_Dep_Screen)
+
+#Mediator = approach coping
+set.seed(1)
+General_Approach_Screen <- contemporaneousMediationFit('cfi_mean_T1','copefull_ACS_mean_T1 ','Self_Cancelled_Screening_T1')
+summary(General_Approach_Screen)
+
+#Mediator = avoidance coping
+set.seed(1)
+General_Avoid_Screen <- contemporaneousMediationFit('cfi_mean_T1','copefull_AvCS_mean_T1','Self_Cancelled_Screening_T1')
+summary(General_Avoid_Screen)
+
+```
+#Time 1: Predictor = cancer-related COVID-19 fears, Outcome = patient-cancelled cancer screening
+```{r}
+#Mediator = anxiety
+set.seed(1)
+Cancer_Anx_Screen <- contemporaneousMediationFit('cfi_survivor_mean_T1','gad7_tot_T1','Self_Cancelled_Screening_T1')
+summary(Cancer_Anx_Screen)
+
+#Mediator = depression
+set.seed(1)
+Cancer_Dep_Screen <- contemporaneousMediationFit('cfi_survivor_mean_T1','phq8_tot_T1','Self_Cancelled_Screening_T1')
+summary(Cancer_Dep_Screen)
+
+#Mediator = approach coping
+set.seed(1)
+Cancer_Approach_Screen <- contemporaneousMediationFit('cfi_survivor_mean_T1','copefull_ACS_mean_T1 ','Self_Cancelled_Screening_T1')
+summary(Cancer_Approach_Screen)
+
+#Mediator = avoidance coping
+set.seed(1)
+Cancer_Avoid_Screen <- contemporaneousMediationFit('cfi_survivor_mean_T1','copefull_AvCS_mean_T1','Self_Cancelled_Screening_T1')
+summary(Cancer_Avoid_Screen)
+```
 
