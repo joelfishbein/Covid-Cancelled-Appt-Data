@@ -4,11 +4,13 @@ output: html_document
 ---
 
 ```{r}
+
 library(lavaan) 
 library(psych)
 setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
 data <-read.csv("CURRENT Full Covid Data.csv", header=T)
 View(data)
+
 ```
 
 #Time 1 single predictor and multivariate models
