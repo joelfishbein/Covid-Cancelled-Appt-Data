@@ -4,6 +4,19 @@ output: html_document
 ---
 
 ```{r}
+install.packages("gitcreds")
+library(gitcreds)
+
+gitcreds_set()
+gitcreds_get()
+
+install.packages("credentials")
+library(credentials)
+
+set_github_pat()
+```
+
+```{r}
 
 library(lavaan) 
 library(psych)
