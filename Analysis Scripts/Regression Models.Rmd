@@ -1,0 +1,120 @@
+---
+title: "Regression Models"
+output: html_document
+---
+
+```{r}
+library(lavaan) 
+library(psych)
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
+data <-read.csv("CURRENT Full Covid Data.csv", header=T)
+View(data)
+```
+
+#Time 1 single predictor and multivariate models
+```{r}
+#Anxiety
+anxiety1 <- glm(Any_Self_Cancelled_Appt_T1 ~ gad7_tot_T1, data=data, family=binomial)
+summary(anxiety1)
+coef(anxiety1)
+exp(coef(anxiety1))
+
+#Depression
+dep1 <- glm(Any_Self_Cancelled_Appt_T1 ~ phq8_tot_T1, data=data, family=binomial)
+summary(dep1)
+coef(dep1)
+exp(coef(dep1))
+
+#General COVID fears
+fear1 <- glm(Any_Self_Cancelled_Appt_T1 ~ cfi_mean_T1, data=data, family=binomial)
+summary(fear1)
+coef(fear1)
+exp(coef(fear1))
+
+#Cancer-specific COVID fears
+canc_fear1 <- glm(Any_Self_Cancelled_Appt_T1 ~ cfi_survivor_mean_T1, data=data, family=binomial)
+summary(canc_fear1)
+coef(canc_fear1)
+exp(coef(canc_fear1))
+
+
+
+
+#Multivariate
+multi1 <- glm(Any_Self_Cancelled_Appt_T1 ~ gad7_tot_T1 + phq8_tot_T1 + cfi_mean_T1 + cfi_survivor_mean_T1, data=data, family=binomial)
+summary(multi1)
+coef(multi1)
+exp(coef(multi1))
+```
+
+#Time 2 single predictor and multivariate models
+```{r}
+#Anxiety
+anxiety2 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2, data=data, family=binomial)
+summary(anxiety2)
+coef(anxiety2)
+exp(coef(anxiety2))
+
+#Depression
+dep2 <- glm(Any_Self_Cancelled_Appt_T2 ~ phq8_tot_T2, data=data, family=binomial)
+summary(dep2)
+coef(dep2)
+exp(coef(dep2))
+
+#General COVID fears
+fear2 <- glm(Any_Self_Cancelled_Appt_T2 ~ cfi_mean_T2, data=data, family=binomial)
+summary(fear2)
+coef(fear2)
+exp(coef(fear2))
+
+#Cancer-specific COVID fears
+canc_fear2 <- glm(Any_Self_Cancelled_Appt_T2 ~ cfi_survivor_mean_T2, data=data, family=binomial)
+summary(canc_fear2)
+coef(canc_fear2)
+exp(coef(canc_fear2))
+
+
+
+
+#Multivariate
+multi2 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2 + phq8_tot_T2 + cfi_mean_T2 + cfi_survivor_mean_T2, data=data, family=binomial)
+summary(multi2)
+coef(multi2)
+exp(coef(multi2))
+```
+
+#Time 3 single predictor and multivariate models
+```{r}
+#Anxiety
+anxiety3 <- glm(Any_Self_Cancelled_Appt_T3 ~ gad7_tot_T3, data=data, family=binomial)
+summary(anxiety3)
+coef(anxiety3)
+exp(coef(anxiety3))
+
+#Depression
+dep3 <- glm(Any_Self_Cancelled_Appt_T3 ~ phq8_tot_T3, data=data, family=binomial)
+summary(dep3)
+coef(dep3)
+exp(coef(dep3))
+
+#General COVID fears
+fear3 <- glm(Any_Self_Cancelled_Appt_T3 ~ cfi_mean_T3, data=data, family=binomial)
+summary(fear3)
+coef(fear3)
+exp(coef(fear3))
+
+#Cancer-specific COVID fears
+canc_fear3 <- glm(Any_Self_Cancelled_Appt_T3 ~ cfi_survivor_mean_T3, data=data, family=binomial)
+summary(canc_fear3)
+coef(canc_fear3)
+exp(coef(canc_fear3))
+
+
+
+
+#Multivariate
+multi3 <- glm(Any_Self_Cancelled_Appt_T3 ~ gad7_tot_T3 + phq8_tot_T3 + cfi_mean_T3 + cfi_survivor_mean_T3, data=data, family=binomial)
+summary(multi3)
+coef(multi3)
+exp(coef(multi3))
+```
