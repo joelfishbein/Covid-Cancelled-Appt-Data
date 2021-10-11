@@ -1,0 +1,52 @@
+---
+title: "Create regression table"
+output: html_notebook
+---
+
+# Read in libraries
+
+```{r}
+
+library(tidyverse)
+library(broom)
+library(kableExtra)
+library(here)
+
+```
+
+
+# Write generic functions for reading in data 
+
+```{r}
+
+getModel <- function(name_of_model){
+  
+  read_rds(file = here('Model fits', name_of_model)) %>%
+    broom::tidy() %>%
+    filter(term != '(Intercept)')
+
+}
+
+```
+
+## Read in univariate models
+
+```{r}
+
+fits <- tibble( models = list(getModel('anxiety1.rds'),
+                              getModel('dep1.rds'),
+                              getModel('canc_fear1.rds'),
+                              getModel('fear1.rds'),
+                              getModel('anxiety2.rds'),
+                              getModel('dep2.rds'),
+                              getModel('canc_fear2.rds'),
+                              getModel('fear2.rds'),
+                              getModel('anxiety3.rds'),
+                              getModel('dep3.rds'),
+                              getModel('canc_fear3.rds'),
+                              getModel('fear3.rds'))) %>%
+                              
+  unnest(cols = c(models))
+
+
+```
