@@ -3,26 +3,36 @@ title: "Regression Models"
 output: html_document
 ---
 
+Lauren - my best guess is the below is just code you needed to run once? If so recommend delete now that it works :)
+
 ```{r}
-install.packages("gitcreds")
-library(gitcreds)
+#install.packages("gitcreds")
+#library(gitcreds)
 
-gitcreds_set()
-gitcreds_get()
+#gitcreds_set()
+#gitcreds_get()
 
-install.packages("credentials")
-library(credentials)
+#install.packages("credentials")
+#library(credentials)
 
-set_github_pat()
+#set_github_pat()
 ```
 
+# Read in libraries and data
+
 ```{r}
 
-library(lavaan) 
+# I believe lavaan is not being used, thus delete?
+#library(lavaan) 
 library(psych)
-setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
-data <-read.csv("CURRENT Full Covid Data.csv", header=T)
-View(data)
+library(here)
+library(tidyverse)
+
+data <-  read_csv(file = here('Raw Data','COVID Main Database All_07-8-21.csv'))
+
+#setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
+#data <-read.csv("CURRENT Full Covid Data.csv", header=T)
+#View(data)
 
 ```
 
@@ -133,3 +143,33 @@ summary(multi3)
 coef(multi3)
 exp(coef(multi3))
 ```
+
+
+# Save model fits
+
+```{r}
+
+write_rds(anxiety1, here('Model fits','anxiety1.rds'))
+write_rds(anxiety2, here('Model fits','anxiety2.rds'))
+write_rds(anxiety3, here('Model fits','anxiety3.rds'))
+
+write_rds(dep1, here('Model fits','dep1.rds'))
+write_rds(dep2, here('Model fits','dep2.rds'))
+write_rds(dep3, here('Model fits','dep3.rds'))
+
+
+write_rds(fear1, here('Model fits','fear1.rds'))
+write_rds(fear2, here('Model fits','fear2.rds'))
+write_rds(fear3, here('Model fits','fear3.rds'))
+
+write_rds(canc_fear1, here('Model fits','canc_fear1.rds'))
+write_rds(canc_fear2, here('Model fits','canc_fear2.rds'))
+write_rds(canc_fear3, here('Model fits','canc_fear3.rds'))
+
+write_rds(multi1, here('Model fits','multi1.rds'))
+write_rds(multi2, here('Model fits','multi2.rds'))
+write_rds(multi3, here('Model fits','multi3.rds'))
+
+```
+
+
