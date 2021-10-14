@@ -96,22 +96,42 @@ single_predictor.table <- tibble( models = list(getModel('anxiety1.rds'),
 
 ```
 
-### Read in multivariate models
+### Read in depression multivariate models
+
 
 ```{r}
 
-multiple_predictor.table <- tibble( models = 
-                                      list(getModel('multi1.rds'),
-                                           getModel('multi2.rds'),
-                                           getModel('multi3.rds'))) %>%
+multiple_predictor.depression.table <- tibble( models = 
+                                      list(getModel('multivariate.depression.T1.fit.rds'),
+                                           getModel('multivariate.depression.T2.fit.rds'),
+                                           getModel('multivariate.depression.T3.fit.rds'))) %>%
                               
   unnest(cols = c(models))
+
+
+```
+
+### Read in anxiety multivariate models
+
+
+```{r}
+
+multiple_predictor.anxiety.table <- tibble( models = 
+                                      list(getModel('multivariate.anxiety.T1.fit.rds'),
+                                           getModel('multivariate.anxiety.T2.fit.rds'),
+                                           getModel('multivariate.anxiety.T3.fit.rds'))) %>%
+                              
+  unnest(cols = c(models))
+
 
 ```
 
 ```{r}
 
-joined_table <- left_join(x = single_predictor.table, y = multiple_predictor.table, by = 'term')
+joined_table <- left_join(x = single_predictor.table, y = multiple_predictor.depression.table, by = 'term') %>%
+  left_join(multiple_predictor.anxiety.table, by = 'term')
+
+joined_table
 
 ```
 
@@ -119,6 +139,8 @@ joined_table <- left_join(x = single_predictor.table, y = multiple_predictor.tab
 
 
 ```{r}
+
+options(knitr.kable.NA = "-")
 
 joined_table %>%
   mutate(term = str_replace_all(term, c("gad7" = "Anxiety",
@@ -137,6 +159,9 @@ joined_table %>%
                       "$p$",
                       "OR",
                       "95% CI",
+                      "$p$",
+                      "OR",
+                      "95% CI",
                       "$p$")) %>%
     
   kable_classic(html_font = 'Times New Roman', full_width = FALSE) %>%
@@ -146,7 +171,9 @@ joined_table %>%
   kableExtra::group_rows(group_label = "June 2020", start_row = 5, end_row = 8, label_row_css = "text-align: center;") %>%
   kableExtra::group_rows(group_label = "November 2020", start_row = 9, end_row = 12, label_row_css = "text-align: center;") %>%
   
-  add_header_above(c(" " = 1, "Single Predictor Models" = 3, "Multiple Predictor Models" = 3))
+  add_header_above(c(" " = 1, "Single Predictor Models" = 3, 
+                     "Multiple Predictor Models Including Depression" = 3,
+                     "Multiple Predictor Models Including Anxiety" = 3))
 
 
 ```
