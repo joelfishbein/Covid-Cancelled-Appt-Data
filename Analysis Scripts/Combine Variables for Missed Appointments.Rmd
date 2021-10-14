@@ -17,6 +17,22 @@ data_all <- read_csv(file = here('Raw Data','COVID Main Database All_06-17-21.cs
 
 # Create missed appointment variables
 
+We are going to combine four variables to look at any self-cancelled appts or any provider-cancelled appts:
+
+* Self-cancelled appts (screening or any other kind of appt)*
+
+Variables:
+1. adh_cancer_test_who: Who postponed or cancelled your routine cancer screening? Count "Me" answers as self-cancelled screening apts
+2. adh_cancer_you: Over the last 2 months have you cancelled or postponed scheduled visits or services for physical health or mental health?
+
+
+* Self-cancelled appts (screening or any other kind of appt)*
+
+Variables:
+1. adh_cancer_test_who: Who postponed or cancelled your routine cancer screening? Count "My provider" answers as provider-cancelled screening apts
+2. adh_cancer_apt: Over the last 2 months, have any of your healthcare providers cancelled or postponed scheduled visits or services for physical or mental health?
+
+
 ```{r}
 
 
@@ -24,6 +40,7 @@ data_to_export <-
   data_all %>%
   
   # create factor variables out of existing variables
+  #Over the last 2 months, have any of your healthcare providers cancelled or postponed scheduled visits or services for physical or mental health?
   
   mutate(adh_cancer_apt_T1 = factor(adh_cancer_apt_T1,
                                          levels = c(0,1,2,3),
@@ -34,7 +51,10 @@ data_to_export <-
          adh_cancer_apt_T3 = factor(adh_cancer_apt_T3,
                                          levels = c(0,1,2,3),
                                          labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         # this variable has flipped labels for levels 2 and 3 compared to prior variables
+  
+  # this variable has flipped labels for levels 2 and 3 compared to prior variables
+  # Over the last 2 months, have you or your healthcare provider cancelled or postponed getting routine cancer screening (breast cancer mammography, colonoscopy, pap smear etc.)?
+  
          adh_cancer_test_T1 = factor(adh_cancer_test_T1,
                                      levels = c(0,1,2,3),
                                        labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
@@ -44,7 +64,9 @@ data_to_export <-
                   adh_cancer_test_T3 = factor(adh_cancer_test_T3,
                                      levels = c(0,1,2,3),
                                     labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
-         adh_cancer_you_T1 = factor(adh_cancer_you_T1,
+        
+  #Over the last 2 months have you cancelled or postponed scheduled visits or services for physical health or mental health?
+   adh_cancer_you_T1 = factor(adh_cancer_you_T1,
                                          levels = c(0,1,2,3),
                                          labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
          adh_cancer_you_T2 = factor(adh_cancer_you_T2,
