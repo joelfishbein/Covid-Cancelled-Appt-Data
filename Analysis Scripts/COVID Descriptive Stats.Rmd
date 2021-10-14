@@ -1,0 +1,437 @@
+---
+title: "COVID Frequencies"
+output: html_document
+---
+
+```{r}
+#Load T1, T2 dataset
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper")
+d <-read.csv("Full Data T1 T2.csv", header=T, na.strings=".")
+View(d)
+
+#Load T3 dataset
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper")
+d1 <-read.csv("Full Data T3.csv", header=T, na.strings=".")
+View(d1)
+```
+
+```{r}
+
+#Question 1
+table(d$adh_cancer_sx_T1)
+table(d$adh_cancer_sx_T2)
+table(d1$adh_cancer_sx_T3)
+
+#Question 1a
+table(d$adh_cancer_sx_checked_T1)
+table(d$adh_cancer_sx_checked_T2)
+table(d1$adh_cancer_sx_checked_T3)
+
+#Question 2
+table(d$adh_cancer_apt_T1)
+table(d$adh_cancer_apt_T2)
+table(d1$adh_cancer_apt_T3)
+
+#Question 3
+table(d$adh_cancer_you_T1)
+table(d$adh_cancer_you_T2)
+table(d1$adh_cancer_you_T3)
+
+#Question 4
+table(d$adh_cancer_upcoming_you_T1)
+table(d$adh_cancer_upcoming_you_T2)
+table(d1$adh_cancer_upcoming_you_T3)
+
+#Question 5
+table(d$adh_cancer_test_T1)
+table(d$adh_cancer_test_T2)
+table(d1$adh_cancer_test_T3)
+
+#Question 5a
+table(d$adh_cancer_test_who_T1)
+table(d$adh_cancer_test_who_T2)
+table(d1$adh_cancer_test_who_T3)
+
+#Question 6
+table(d$adh_cancer_test_upcoming_T1)
+table(d$adh_cancer_test_upcoming_T2)
+table(d1$adh_cancer_test_upcoming_T3)
+
+#Question 7
+table(d$adh_cancer_gas___1_T1)
+table(d$adh_cancer_gas___1_T2)
+table(d1$adh_cancer_gas___1_T3)
+
+table(d$adh_cancer_gas___2_T1)
+table(d$adh_cancer_gas___2_T2)
+table(d1$adh_cancer_gas___2_T3)
+
+table(d$adh_cancer_gas___3_T1)
+table(d$adh_cancer_gas___3_T2)
+table(d1$adh_cancer_gas___3_T3)
+
+table(d$adh_cancer_gas___4_T1)
+table(d$adh_cancer_gas___4_T2)
+table(d1$adh_cancer_gas___4_T3)
+
+table(d$adh_cancer_gas___5_T1)
+table(d$adh_cancer_gas___5_T2)
+table(d1$adh_cancer_gas___5_T3)
+
+#Question 7a
+table(d$adh_cancer_gas_rx_T1)
+table(d$adh_cancer_gas_rx_T2)
+table(d1$adh_cancer_gas_rx_T3)
+
+#Question 7b
+table(d$adh_cancer_gas_scan_T1)
+table(d$adh_cancer_gas_scan_T2)
+table(d1$adh_cancer_gas_scan_T3)
+
+#Question 7c
+table(d$adh_cancer_gas_scan_not_T1)
+table(d$adh_cancer_gas_scan_not_T2)
+table(d1$adh_cancer_gas_scan_not_T3)
+
+#Question 8
+table(d$adh_cancer_gas_adv_T1)
+table(d$adh_cancer_gas_adv_T2)
+table(d1$adh_cancer_gas_adv_T3)
+
+#Question 9
+table(d$adh_cancer_gas_care_T1)
+table(d$adh_cancer_gas_care_T2)
+table(d1$adh_cancer_gas_care_T3)
+
+#Question 10
+table(d$sx_changes_T1)
+table(d$sx_changes_T2)
+table(d1$sx_changes_T3)
+
+#Question 11
+table(d$acp_changes_T1)
+table(d$acp_changes_T2)
+table(d1$acp_changes_T3)
+
+
+
+
+
+
+
+```
+
+```{r}
+#Load what type of appointment patient cancelled dataset
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper")
+d2 <-read.csv("Cancer_you data.csv", header=T, na.strings=".")
+View(d2)
+
+#3a
+
+#Timepoint 1
+table(d2$adh_cancer_you_why_T1_1)
+table(d2$adh_cancer_you_why_T1_2)
+table(d2$adh_cancer_you_why_T1_3)
+table(d2$adh_cancer_you_why_T1_4)
+table(d2$adh_cancer_you_why_T1_5)
+
+#Timepoint 2
+table(d2$adh_cancer_you_why_T2_1)
+table(d2$adh_cancer_you_why_T2_2)
+table(d2$adh_cancer_you_why_T2_3)
+table(d2$adh_cancer_you_why_T2_4)
+table(d2$adh_cancer_you_why_T2_5)
+
+#Timepoint 3
+table(d2$adh_cancer_you_why_T3_1)
+table(d2$adh_cancer_you_why_T3_2)
+table(d2$adh_cancer_you_why_T3_3)
+table(d2$adh_cancer_you_why_T3_4)
+table(d2$adh_cancer_you_why_T3_5)
+
+
+```
+```{r}
+#Load what type of appointment provider cancelled dataset
+setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper")
+d3 <-read.csv("Cancer_provider data.csv", header=T, na.strings=".")
+View(d3)
+
+#2a
+
+#Timepoint 1
+table(d3$adh_cancer_apt_why_T1_1)
+table(d3$adh_cancer_apt_why_T1_2)
+table(d3$adh_cancer_apt_why_T1_3)
+table(d3$adh_cancer_apt_why_T1_4)
+table(d3$adh_cancer_apt_why_T1_5)
+
+#Timepoint 2
+table(d3$adh_cancer_apt_why_T2_1)
+table(d3$adh_cancer_apt_why_T2_2)
+table(d3$adh_cancer_apt_why_T2_3)
+table(d3$adh_cancer_apt_why_T2_4)
+table(d3$adh_cancer_apt_why_T2_5)
+
+#Timepoint 3
+table(d3$adh_cancer_apt_why_T3_1)
+table(d3$adh_cancer_apt_why_T3_2)
+table(d3$adh_cancer_apt_why_T3_3)
+table(d3$adh_cancer_apt_why_T3_4)
+table(d3$adh_cancer_apt_why_T3_5)
+
+```
+
+
+```{r}
+#Adherence to endocrine therapy
+
+table(d$medication_status_T1)
+table(d$medication_status_T2)
+table(d1$medication_status_T3)
+
+table(d$emo_attitude_happy_T1)
+table(d$emo_attitude_happy_T2)
+table(d1$emo_attitude_happy_T3)
+
+table(d$emo_attitude_calm_T1)
+table(d$emo_attitude_calm_T2)
+table(d1$emo_attitude_calm_T3)
+
+table(d$emo_attitude_enthusiastic_T1)
+table(d$emo_attitude_enthusiastic_T2)
+table(d1$emo_attitude_enthusiastic_T3)
+
+table(d$emo_attitude_comforted_T1)
+table(d$emo_attitude_comforted_T2)
+table(d1$emo_attitude_comforted_T3)
+
+table(d$emo_attitude_accepting_T1)
+table(d$emo_attitude_accepting_T2)
+table(d1$emo_attitude_accepting_T3)
+
+table(d$emo_attitude_sad_T1)
+table(d$emo_attitude_sad_T2)
+table(d1$emo_attitude_sad_T3)
+
+table(d$emo_attitude_annoying_T1)
+table(d$emo_attitude_annoying_T2)
+table(d1$emo_attitude_annoying_T3)
+
+table(d$emo_attitude_tense_T1)
+table(d$emo_attitude_tense_T2)
+table(d1$emo_attitude_tense_T3)
+
+table(d$emo_attitude_reluctant_T1)
+table(d$emo_attitude_reluctant_T2)
+table(d1$emo_attitude_reluctant_T3)
+
+table(d$emo_attitude_angry_T1)
+table(d$emo_attitude_angry_T2)
+table(d1$emo_attitude_angry_T3)
+
+library(psych)
+describe(d$et_missed_T1, na.rm=TRUE)
+describe(d$et_missed_T2, na.rm=TRUE)
+describe(d1$et_missed_T3, na.rm=TRUE)
+
+hist(d$et_missed_T1)
+hist(d$et_missed_T2)
+hist(d1$et_missed_T3)
+
+
+table(d$reason_missing___1_T1)
+table(d$reason_missing___1_T2)
+table(d1$reason_missing___1_T3)
+
+table(d$reason_missing___2_T1)
+table(d$reason_missing___2_T2)
+table(d1$reason_missing___2_T3)
+
+table(d$reason_missing___3_T1)
+table(d$reason_missing___3_T2)
+table(d1$reason_missing___3_T3)
+
+table(d$reason_missing___4_T1)
+table(d$reason_missing___4_T2)
+table(d1$reason_missing___4_T3)
+
+table(d$reason_missing___5_T1)
+table(d$reason_missing___5_T2)
+table(d1$reason_missing___5_T3)
+
+table(d$adh_other_T1)
+table(d$adh_other_T2)
+table(d1$adh_other_T3)
+
+table(d$et_missed_covid19_T1)
+table(d$et_missed_covid19_T2)
+table(d1$et_missed_covid19_T3)
+
+```
+```{r}
+#Adherence to diet, exercise, and smoking
+
+describe(d$adh_nutrition_eat_T1, na.rm=TRUE)
+describe(d$adh_nutrition_eat_T2, na.rm=TRUE)
+describe(d1$adh_nutrition_eat_T3, na.rm=TRUE)
+
+hist(d$adh_nutrition_eat_T1)
+hist(d$adh_nutrition_eat_T2)
+hist(d1$adh_nutrition_eat_T3)
+
+describe(d$adh_nutrition_eat_fv_T1, na.rm=TRUE)
+describe(d$adh_nutrition_eat_fv_T2, na.rm=TRUE)
+describe(d1$adh_nutrition_eat_fv_T3, na.rm=TRUE)
+
+hist(d$adh_nutrition_eat_fv_T1)
+hist(d$adh_nutrition_eat_fv_T2)
+hist(d1$adh_nutrition_eat_fv_T3)
+
+
+describe(d$adh_nutrition_eat_fv_2_T1, na.rm=TRUE)
+describe(d$adh_nutrition_eat_fv_2_T2, na.rm=TRUE)
+describe(d1$adh_nutrition_eat_fv_2_T3, na.rm=TRUE)
+
+hist(d$adh_nutrition_eat_fv_2_T1)
+hist(d$adh_nutrition_eat_fv_2_T2)
+hist(d1$adh_nutrition_eat_fv_2_T3)
+
+describe(d$adh_exercise_T1, na.rm=TRUE)
+describe(d$adh_exercise_T2, na.rm=TRUE)
+describe(d1$adh_exercise_T3, na.rm=TRUE)
+
+hist(d$adh_exercise_T1)
+hist(d$adh_exercise_T2)
+hist(d1$adh_exercise_T3)
+
+describe(d$adh_exercise2_time_T1, na.rm=TRUE)
+describe(d$adh_exercise2_time_T2, na.rm=TRUE)
+describe(d1$adh_exercise2_time_T3, na.rm=TRUE)
+
+hist(d$adh_exercise2_time_T1)
+hist(d$adh_exercise2_time_T2)
+hist(d1$adh_exercise2_time_T3)
+
+describe(d$adh_alcohol4_T1, na.rm=TRUE)
+describe(d$adh_alcohol4_T2, na.rm=TRUE)
+describe(d1$adh_alcohol4_T3, na.rm=TRUE)
+
+hist(d$adh_alcohol4_T1)
+hist(d$adh_alcohol4_T2)
+hist(d1$adh_alcohol4_T3)
+
+table(d$adh_tobacco_T1)
+table(d$adh_tobacco_T2)
+table(d1$adh_tobacco_T3)
+
+table(d$adh_tobacco1___1_T1)
+table(d$adh_tobacco1___1_T2)
+table(d1$adh_tobacco1___1_T3)
+
+table(d$adh_tobacco1___2_T1)
+table(d$adh_tobacco1___2_T2)
+table(d1$adh_tobacco1___2_T3)
+
+describe(d$adh_tobacco1_yes_T1, na.rm=TRUE)
+describe(d$adh_tobacco1_yes_T2, na.rm=TRUE)
+describe(d1$adh_tobacco1_yes_T3, na.rm=TRUE)
+
+hist(d$adh_tobacco1_yes_T1)
+hist(d$adh_tobacco1_yes_T2)
+hist(d1$adh_tobacco1_yes_T3)
+
+describe(d$adh_tobacco1_yes1_T1, na.rm=TRUE)
+describe(d$adh_tobacco1_yes1_T2, na.rm=TRUE)
+describe(d1$adh_tobacco1_yes1_T3, na.rm=TRUE)
+
+table(d$adh_drugs_T1)
+table(d$adh_drugs_T2)
+table(d1$adh_drugs_T3)
+
+
+
+
+
+
+
+
+
+```
+```{r}
+#COPE
+
+#Mean score emotional approach
+#T1
+d$cope_approach_T1 <- (d$copefull_14_T1 + d$copefull_18_T1 + d$copefull_24_T1 + d$copefull_32_T1 + d$copefull_2_T1 + d$copefull_9_T1 + d$copefull_28_T1 + d$copefull_35_T1)/8
+
+#T2
+d$cope_approach_T2 <- (d$copefull_14_T2 + d$copefull_18_T2 + d$copefull_24_T2 + d$copefull_32_T2 + d$copefull_2_T2 + d$copefull_9_T2 + d$copefull_28_T2 + d$copefull_35_T2)/8
+
+#T3
+d1$cope_approach_T3 <- (d1$copefull_14_T3 + d1$copefull_18_T3 + d1$copefull_24_T3 + d1$copefull_32_T3 + d1$copefull_2_T3 + d1$copefull_9_T3 + d1$copefull_28_T3 + d1$copefull_35_T3)/8
+
+describe(d$cope_approach_T1)
+describe(d$cope_approach_T2)
+describe(d1$cope_approach_T3)
+
+hist(d$cope_approach_T1)
+hist(d$cope_approach_T2)
+hist(d1$cope_approach_T3)
+
+#Mean score emotional avoidance
+#T1
+d$cope_avoidance_T1 <- (d$copefull_4_T1 + d$copefull_30_T1 + d$copefull_33_T1 + d$copefull_38_T1 + d$copefull_29_T1 + d$copefull_31_T1 + d$copefull_34_T1 + d$copefull_39_T1 + d$copefull_11_T1 + d$copefull_13_T1  + d$copefull_15_T1 + d$copefull_26_T1)/12
+
+d$cope_avoidance_T2 <- (d$copefull_4_T2 + d$copefull_30_T2 + d$copefull_33_T2 + d$copefull_38_T2 + d$copefull_29_T2 + d$copefull_31_T2 + d$copefull_34_T2 + d$copefull_39_T2 + d$copefull_11_T2 + d$copefull_13_T2  + d$copefull_15_T2 + d$copefull_26_T2)/12
+
+d1$cope_avoidance_T3 <- (d1$copefull_4_T3 + d1$copefull_30_T3 + d1$copefull_33_T3 + d1$copefull_38_T3 + d1$copefull_29_T3 + d1$copefull_31_T3 + d1$copefull_34_T3 + d1$copefull_39_T3 + d1$copefull_11_T3 + d1$copefull_13_T3  + d1$copefull_15_T3 + d1$copefull_26_T3)/12
+
+describe(d$cope_avoidance_T1)
+describe(d$cope_avoidance_T2)
+describe(d1$cope_avoidance_T3)
+
+hist(d$cope_avoidance_T1)
+hist(d$cope_avoidance_T2)
+hist(d1$cope_avoidance_T3)
+
+
+```
+```{r}
+#PHQ
+
+describe(d$phq8_tot_T1)
+describe(d$phq8_tot_T2)
+describe(d1$phq8_tot_T3)
+
+hist(d$phq8_tot_T1)
+hist(d$phq8_tot_T2)
+hist(d1$phq8_tot_T3)
+
+```
+
+```{r}
+#COVID negative economic impacts
+
+table(d$covid19_impact_econ_T1)
+table(d$covid19_impact_econ_T2)
+table(d1$covid19_impact_econ_T3)
+
+table(d$healthinsurance_T1)
+table(d$healthinsurance_T2)
+table(d1$healthinsurance_T3)
+
+table(d$healthinsurance_reason_T1)
+table(d$healthinsurance_reason_T2)
+table(d1$healthinsurance_reason_T3)
+
+table(d$covid19_impact_health_T1)
+table(d$covid19_impact_health_T2)
+table(d1$covid19_impact_health_T3)
+
+table(d$covid19_impact_health_y_T1)
+
+
+```
+
