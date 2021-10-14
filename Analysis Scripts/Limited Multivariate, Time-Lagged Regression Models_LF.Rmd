@@ -1,0 +1,163 @@
+---
+title: "Combine Variables for Missed Appointments"
+output: html_notebook
+---
+Hi it's Lauren
+
+```{r}
+library(tidyverse)
+library(here)
+library(pander)
+
+```
+
+
+```{r}
+
+data_all <- read_csv(file = here('Raw Data','COVID Main Database All_06-17-21.csv')
+  
+data <- 
+  data_all %>%
+  select(record_id, adh_cancer_apt_T1, adh_cancer_apt_T2, adh_cancer_apt_T3,
+         adh_cancer_you_T1, adh_cancer_you_T2, adh_cancer_you_T3,
+         adh_cancer_test_T1, adh_cancer_test_T2, adh_cancer_test_T3,
+         adh_cancer_test_who_T1, adh_cancer_test_who_T2, adh_cancer_test_who_T3) %>%
+  
+  mutate(adh_cancer_apt_T1 = factor(adh_cancer_apt_T1,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_apt_T2 = factor(adh_cancer_apt_T2,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_apt_T3 = factor(adh_cancer_apt_T3,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         # this variable has flipped labels for levels 2 and 3 compared to prior variables
+         adh_cancer_test_T1 = factor(adh_cancer_test_T1,
+                                     levels = c(0,1,2,3),
+                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+                  adh_cancer_test_T2 = factor(adh_cancer_test_T2,
+                                     levels = c(0,1,2,3),
+                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+                  adh_cancer_test_T3 = factor(adh_cancer_test_T3,
+                                     levels = c(0,1,2,3),
+                                    labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T1 = factor(adh_cancer_you_T1,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T2 = factor(adh_cancer_you_T2,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+         adh_cancer_you_T3 = factor(adh_cancer_you_T3,
+                                         levels = c(0,1,2,3),
+                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
+    adh_cancer_test_who_T1 = fct_explicit_na(factor(adh_cancer_test_who_T1,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))),
+         adh_cancer_test_who_T2 = fct_explicit_na(factor(adh_cancer_test_who_T2,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))),
+         adh_cancer_test_who_T3 = fct_explicit_na(factor(adh_cancer_test_who_T3,
+                                         levels = c(1,2),
+                                         labels = c('Me','My healthcare provider'))))
+  
+
+table(data$adh_cancer_test_who_T1)
+table(data$adh_cancer_test_who_T2)
+table(data$adh_cancer_test_who_T3)
+
+
+View(tibble(data$adh_cancer_test_T3, data$adh_cancer_test_who_T3))
+```
+
+
+```{r}
+
+data <-
+  data %>%
+  mutate(Any_Self_Cancelled_Appt_T1 = (adh_cancer_you_T1 == "Yes" | adh_cancer_test_who_T1 == "Me"),
+         Any_Self_Cancelled_Appt_T2 = (adh_cancer_you_T2 == "Yes" | adh_cancer_test_who_T2 == "Me"),
+         Any_Self_Cancelled_Appt_T3 = (adh_cancer_you_T3 == "Yes" | adh_cancer_test_who_T3 == "Me"),
+         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | adh_cancer_test_who_T1 == "My provider"),
+         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My provider"),
+         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My provider"))
+
+#table(data$Any_Provider_Cancelled_Appt_T3)
+
+View(data)
+
+```
+
+
+# Write out new data 
+
+## Create subset of dataset
+
+First, just isolate the variables we created that are new and that we want to export
+
+```{r}
+# remind myself what the names of the columns are that we will export
+#colnames(data)
+
+data_to_export <- data %>%
+  
+  # select just the variables we want
+  select(record_id, 
+         Any_Self_Cancelled_Appt_T1,    
+         Any_Self_Cancelled_Appt_T2,  
+         Any_Self_Cancelled_Appt_T3,
+         Any_Provider_Cancelled_Appt_T1,
+         Any_Provider_Cancelled_Appt_T2,
+         Any_Provider_Cancelled_Appt_T3)
+
+# write to file
+readr::write_csv(x = data_to_export, 
+                 file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.csv')
+
+# write to .rds for easy import elsewhere
+
+write_rds(data_to_export, file = '~/Research - Lives on HD/Covid Canceled Medical Appointments Analysis/Generated Data/any_self_or_provider_cancelled_appts.rds')
+
+
+```
+
+# Examine frequencies
+
+----------------------------------------------------------
+            Type               Timepoint   trues   falses 
+----------------------------- ----------- ------- --------
+ Any_Provider_Cancelled_Appt       1        65       81   
+
+ Any_Provider_Cancelled_Appt       2        47       93   
+
+ Any_Provider_Cancelled_Appt       3        11      109   
+
+   Any_Self_Cancelled_Appt         1        49       97   
+
+   Any_Self_Cancelled_Appt         2        45       95   
+
+   Any_Self_Cancelled_Appt         3        27       93   
+----------------------------------------------------------
+
+```{r}
+
+data_to_export %>%
+  
+  # Lauren - check out pivot_longer() and pivot_wider() tutorials to get a sense of what this does. This command is one of the most powerful ones in R imo :). Basically what it does is reformat the data so that I can just then group and count trues/falses once rather than separately for each variable in the next lines.
+  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3, 
+               names_to = c('Type','Timepoint'),
+               names_pattern = '(.*)_T(.*)') %>%
+  
+  
+  # group so that we get trues/falses by type of code, by timepoint
+  group_by(Type, Timepoint) %>%
+  
+  # compute number of trues/falses
+  summarise(trues = sum(value == 'TRUE', na.rm = TRUE),
+            falses = sum(value == 'FALSE', na.rm = TRUE)) %>%
+  
+  # display in ASCII (easy to read in RStudio)
+  pander()
+  
+
+```
