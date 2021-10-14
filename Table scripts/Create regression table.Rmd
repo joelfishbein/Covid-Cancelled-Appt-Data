@@ -1,0 +1,152 @@
+---
+title: "Create regression table"
+output: html_notebook
+---
+
+# Read in libraries
+
+```{r}
+
+library(tidyverse)
+library(broom)
+library(kableExtra)
+library(here)
+
+```
+
+## examine what is in glm object
+
+```{r}
+
+multi1 <- read_rds(file = here('Model fits', 'multi1.rds'))
+
+summary(multi1)
+
+```
+
+
+# Write generic functions for reading in data and formatting
+
+```{r}
+
+format_p_value <- function(p_value){
+  
+  rounded <- format(round(p_value, 3), nsmall = 3)
+  
+  rounded.string <- as.character(rounded)
+  
+  rounded.string.no_leading_zero <- str_replace(rounded.string, pattern = "0.", ".")
+  
+  ifelse(rounded.string.no_leading_zero == ".000",
+         return("<.001"),
+         return(rounded.string.no_leading_zero))
+}
+
+getModel <- function(name_of_model){
+  
+  read_rds(file = here('Model fits', name_of_model)) %>%
+    
+    # tidy parameter estimate output with confidence intervals
+    broom::tidy(conf.int = TRUE) %>%
+    
+    # drop intercept term, not going to print that in the table
+    filter(term != '(Intercept)') %>%
+    
+    # convert log odds to odds ratio by exponentiation
+    mutate((across(.cols = c(estimate, conf.low, conf.high), ~ exp(.x)))) %>%
+    
+    
+    # round to 2 decimal places except p value
+    mutate((across(.cols = c(estimate, conf.low, conf.high), ~ format(round(.x, 2), nsmall = 2)))) %>%
+    
+    # format p value
+    mutate( p.value = format_p_value(p.value)) %>%
+    
+    # create 95% CI character string
+    mutate(`95% CI` = str_c("[",conf.low, " ,", conf.high, "]")) %>%
+    
+    # drop "statistic" and "std.error" column - not using in output
+    select(-statistic, -std.error, -conf.low, -conf.high) %>%
+    
+    # order columns correctly
+    relocate(`95% CI`, .before = p.value) 
+}
+
+```
+
+## Read in univariate models
+
+```{r}
+
+single_predictor.table <- tibble( models = list(getModel('anxiety1.rds'),
+                              getModel('dep1.rds'),
+                              getModel('canc_fear1.rds'),
+                              getModel('fear1.rds'),
+                              getModel('anxiety2.rds'),
+                              getModel('dep2.rds'),
+                              getModel('canc_fear2.rds'),
+                              getModel('fear2.rds'),
+                              getModel('anxiety3.rds'),
+                              getModel('dep3.rds'),
+                              getModel('canc_fear3.rds'),
+                              getModel('fear3.rds'))) %>%
+                              
+  unnest(cols = c(models))
+
+
+```
+
+### Read in multivariate models
+
+```{r}
+
+multiple_predictor.table <- tibble( models = 
+                                      list(getModel('multi1.rds'),
+                                           getModel('multi2.rds'),
+                                           getModel('multi3.rds'))) %>%
+                              
+  unnest(cols = c(models))
+
+```
+
+```{r}
+
+joined_table <- left_join(x = single_predictor.table, y = multiple_predictor.table, by = 'term')
+
+```
+
+# Format in kableExtra
+
+
+```{r}
+
+joined_table %>%
+  mutate(term = str_replace_all(term, c("gad7" = "Anxiety",
+                                        "phq8" = "Depression",
+                                        "cfi_survivor" = "Cancer-related COVID Fear",
+                                        "cfi_mean" = "General COVID Fear",
+                                        "_tot_" = "",
+                                        "_mean_" = "",
+                                        "T1" = "",
+                                        "T2" = "",
+                                        "T3" = "",
+                                        "_" = ""))) %>%
+  kable(col.names = c("Predictor",
+                      "OR",
+                      "95% CI",
+                      "$p$",
+                      "OR",
+                      "95% CI",
+                      "$p$")) %>%
+    
+  kable_classic(html_font = 'Times New Roman', full_width = FALSE) %>%
+  
+  # group_rows by timepoint
+  kableExtra::group_rows(group_label = "May 2020", start_row = 1, end_row = 4, label_row_css = "text-align: center;") %>%
+  kableExtra::group_rows(group_label = "June 2020", start_row = 5, end_row = 8, label_row_css = "text-align: center;") %>%
+  kableExtra::group_rows(group_label = "November 2020", start_row = 9, end_row = 12, label_row_css = "text-align: center;") %>%
+  
+  add_header_above(c(" " = 1, "Single Predictor Models" = 3, "Multiple Predictor Models" = 3))
+
+
+```

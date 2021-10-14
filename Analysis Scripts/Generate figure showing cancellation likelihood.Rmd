@@ -1,0 +1,117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+
+
+data <- read_csv(here('Generated Data','Analytic dataset.csv'))
+
+```
+# Scatterplots
+
+# T1
+
+```{r}
+
+data %>%
+  ggplot(aes(x = gad7_tot_T1, y = as.integer(Any_Self_Cancelled_Appt_T1))) +
+  geom_point() +
+  geom_smooth(method = 'glm',method.args = list(family = "binomial"), 
+    se = FALSE) +
+  theme_classic()
+
+```
+
+
+# T2
+
+```{r}
+
+data %>%
+  ggplot(aes(x = gad7_tot_T2, y = as.integer(Any_Self_Cancelled_Appt_T2))) +
+  geom_point() +
+  geom_smooth(method = 'glm',method.args = list(family = "binomial"), 
+    se = FALSE) +
+  theme_classic()
+
+```
+
+# T3
+
+```{r}
+
+data %>%
+  ggplot(aes(x = gad7_tot_T3, y = as.integer(Any_Self_Cancelled_Appt_T3))) +
+  geom_point() +
+  geom_smooth(method = 'glm',method.args = list(family = "binomial"), 
+    se = FALSE) +
+  theme_classic()
+
+```
+
+# Bin GAD responses and do bar plots
+
+## Do binning
+
+```{r}
+
+data <- data %>%
+  mutate(GAD_severity_bin_T1 = fct_collapse(factor(gad7_tot_T1), 
+  Minimal = as.character(c(0:4)),
+  Mild = as.character(c(5:9)),
+  Moderate = as.character(c(10:14)),
+  Severe = as.character(c(15:21))),
+  
+  GAD_severity_bin_T2 = fct_collapse(factor(gad7_tot_T2), 
+  Minimal = as.character(c(0:4)),
+  Mild = as.character(c(5:9)),
+  Moderate = as.character(c(10:14)),
+  Severe = as.character(c(15:21))),
+
+GAD_severity_bin_T3 = fct_collapse(factor(gad7_tot_T3), 
+  Minimal = as.character(c(0:4)),
+  Mild = as.character(c(5:9)),
+  Moderate = as.character(c(10:14)),
+  Severe = as.character(c(15:21))))
+
+```
+
+# T1
+
+```{r}
+
+data %>%
+  ggplot(aes(x = GAD_severity_bin_T1,  fill = Any_Self_Cancelled_Appt_T1)) +
+  geom_bar()
+
+
+```
+
+# T2
+
+```{r}
+
+data %>%
+  ggplot(aes(x = GAD_severity_bin_T2,  fill = Any_Self_Cancelled_Appt_T2)) +
+  geom_bar()
+
+
+```
+
+
+# T3
+
+```{r}
+
+data %>%
+  ggplot(aes(x = GAD_severity_bin_T3,  fill = Any_Self_Cancelled_Appt_T3)) +
+  geom_bar()
+
+
+```
