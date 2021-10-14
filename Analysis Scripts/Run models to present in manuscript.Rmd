@@ -1,0 +1,115 @@
+---
+title: "Regression Models"
+output: html_document
+---
+
+# Read in libraries and data
+
+```{r}
+
+library(psych)
+library(here)
+library(tidyverse)
+
+data <-  read_csv(file = here('Raw Data','COVID Main Database All_07-8-21.csv'))
+
+
+```
+
+# Single predictor models
+
+## Timepoint 1
+
+```{r}
+#Anxiety
+anxiety1 <- glm(Any_Self_Cancelled_Appt_T1 ~ gad7_tot_T1, data=data, family=binomial)
+
+#Depression
+dep1 <- glm(Any_Self_Cancelled_Appt_T1 ~ phq8_tot_T1, data=data, family=binomial)
+
+#General COVID fears
+fear1 <- glm(Any_Self_Cancelled_Appt_T1 ~ cfi_mean_T1, data=data, family=binomial)
+
+#Cancer-specific COVID fears
+canc_fear1 <- glm(Any_Self_Cancelled_Appt_T1 ~ cfi_survivor_mean_T1, data=data, family=binomial)
+```
+
+## Timepoint 2
+```{r}
+anxiety2 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2, data=data, family=binomial)
+dep2 <- glm(Any_Self_Cancelled_Appt_T2 ~ phq8_tot_T2, data=data, family=binomial)
+fear2 <- glm(Any_Self_Cancelled_Appt_T2 ~ cfi_mean_T2, data=data, family=binomial)
+canc_fear2 <- glm(Any_Self_Cancelled_Appt_T2 ~ cfi_survivor_mean_T2, data=data, family=binomial)
+```
+
+## Timepoint 3
+```{r}
+anxiety3 <- glm(Any_Self_Cancelled_Appt_T3 ~ gad7_tot_T3, data=data, family=binomial)
+dep3 <- glm(Any_Self_Cancelled_Appt_T3 ~ phq8_tot_T3, data=data, family=binomial)
+fear3 <- glm(Any_Self_Cancelled_Appt_T3 ~ cfi_mean_T3, data=data, family=binomial)
+canc_fear3 <- glm(Any_Self_Cancelled_Appt_T3 ~ cfi_survivor_mean_T3, data=data, family=binomial)
+
+```
+
+# Multivariate
+
+Anxiety and depression not included in the same models because they are too closely correlated...we observed issues with multicollinearity when including both phq8_tot and gad7_tot in the same models
+
+## Depression, general covid fears, and cancer-specific covid fears
+
+```{r}
+multivariate.depression.T1.fit <- glm(Any_Self_Cancelled_Appt_T1 ~ phq8_tot_T1 + cfi_mean_T1 + cfi_survivor_mean_T1, data=data, family=binomial)
+
+multivariate.depression.T2.fit <- glm(Any_Self_Cancelled_Appt_T2 ~ phq8_tot_T2 + cfi_mean_T2 + cfi_survivor_mean_T2, data=data, family=binomial)
+
+multivariate.depression.T3.fit <- glm(Any_Self_Cancelled_Appt_T3 ~ phq8_tot_T3 + cfi_mean_T3 + cfi_survivor_mean_T3, data=data, family=binomial)
+
+```
+
+## Anxiety, general covid fears, and cancer-specific covid fears
+
+```{r}
+multivariate.anxiety.T1.fit <- glm(Any_Self_Cancelled_Appt_T1 ~ gad7_tot_T1 + cfi_mean_T1 + cfi_survivor_mean_T1, data=data, family=binomial)
+
+multivariate.anxiety.T2.fit <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2 + cfi_mean_T2 + cfi_survivor_mean_T2, data=data, family=binomial)
+
+multivariate.anxiety.T3.fit <- glm(Any_Self_Cancelled_Appt_T3 ~ gad7_tot_T3 + cfi_mean_T3 + cfi_survivor_mean_T3, data=data, family=binomial)
+
+
+```
+
+
+
+
+# Save model fits
+
+```{r}
+
+write_rds(anxiety1, here('Model fits','anxiety1.rds'))
+write_rds(anxiety2, here('Model fits','anxiety2.rds'))
+write_rds(anxiety3, here('Model fits','anxiety3.rds'))
+
+write_rds(dep1, here('Model fits','dep1.rds'))
+write_rds(dep2, here('Model fits','dep2.rds'))
+write_rds(dep3, here('Model fits','dep3.rds'))
+
+
+write_rds(fear1, here('Model fits','fear1.rds'))
+write_rds(fear2, here('Model fits','fear2.rds'))
+write_rds(fear3, here('Model fits','fear3.rds'))
+
+write_rds(canc_fear1, here('Model fits','canc_fear1.rds'))
+write_rds(canc_fear2, here('Model fits','canc_fear2.rds'))
+write_rds(canc_fear3, here('Model fits','canc_fear3.rds'))
+
+write_rds(multivariate.depression.T1.fit, here('Model fits','multivariate.depression.T1.fit.rds'))
+write_rds(multivariate.depression.T2.fit, here('Model fits','multivariate.depression.T2.fit.rds'))
+write_rds(multivariate.depression.T2.fit, here('Model fits','multivariate.depression.T3.fit.rds'))
+
+write_rds(multivariate.anxiety.T1.fit, here('Model fits','multivariate.anxiety.T1.fit.rds'))
+write_rds(multivariate.anxiety.T2.fit, here('Model fits','multivariate.anxiety.T2.fit.rds'))
+write_rds(multivariate.anxiety.T2.fit, here('Model fits','multivariate.anxiety.T3.fit.rds'))
+
+```
+
+
