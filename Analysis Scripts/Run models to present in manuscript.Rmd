@@ -104,11 +104,11 @@ write_rds(canc_fear3, here('Model fits','canc_fear3.rds'))
 
 write_rds(multivariate.depression.T1.fit, here('Model fits','multivariate.depression.T1.fit.rds'))
 write_rds(multivariate.depression.T2.fit, here('Model fits','multivariate.depression.T2.fit.rds'))
-write_rds(multivariate.depression.T2.fit, here('Model fits','multivariate.depression.T3.fit.rds'))
+write_rds(multivariate.depression.T3.fit, here('Model fits','multivariate.depression.T3.fit.rds'))
 
 write_rds(multivariate.anxiety.T1.fit, here('Model fits','multivariate.anxiety.T1.fit.rds'))
 write_rds(multivariate.anxiety.T2.fit, here('Model fits','multivariate.anxiety.T2.fit.rds'))
-write_rds(multivariate.anxiety.T2.fit, here('Model fits','multivariate.anxiety.T3.fit.rds'))
+write_rds(multivariate.anxiety.T3.fit, here('Model fits','multivariate.anxiety.T3.fit.rds'))
 
 ```
 
