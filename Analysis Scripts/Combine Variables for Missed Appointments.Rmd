@@ -10,7 +10,7 @@ library(tidyverse)
 library(here)
 library(pander)
 
-data_all <- read_csv(file = here('Raw Data','COVID Main Database All_06-17-21.csv'))
+data_all <- read_csv(file = '~/On HD/Raw data/Covid study/COVID Main Database All_07-8-21.csv')
   
 
 ```
@@ -89,10 +89,31 @@ data_to_export <-
   mutate(Any_Self_Cancelled_Appt_T1 = (adh_cancer_you_T1 == "Yes" | adh_cancer_test_who_T1 == "Me"),
          Any_Self_Cancelled_Appt_T2 = (adh_cancer_you_T2 == "Yes" | adh_cancer_test_who_T2 == "Me"),
          Any_Self_Cancelled_Appt_T3 = (adh_cancer_you_T3 == "Yes" | adh_cancer_test_who_T3 == "Me"),
-         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | adh_cancer_test_who_T1 == "My provider"),
-         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My provider"),
-         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My provider"))
+         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | adh_cancer_test_who_T1 == "My healthcare provider"),
+         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My healthcare provider"),
+         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My healthcare provider"))
   
+
+```
+
+
+```{r}
+
+
+data_to_export %>%
+  select(Any_Provider_Cancelled_Appt_T1, adh_cancer_test_who_T1, adh_cancer_apt_T1) %>%
+  filter(adh_cancer_test_who_T1 == "My healthcare provider") %>%
+  arrange(Any_Provider_Cancelled_Appt_T1)
+
+```
+
+```{r}
+
+
+data_to_export %>%
+  select(Any_Provider_Cancelled_Appt_T2, adh_cancer_test_who_T2, adh_cancer_apt_T2) %>%
+  filter(adh_cancer_test_who_T2 == "My healthcare provider") %>%
+  arrange(Any_Provider_Cancelled_Appt_T2)
 
 ```
 
