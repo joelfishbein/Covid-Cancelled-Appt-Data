@@ -7,78 +7,105 @@ output: html_notebook
 
 library(here)
 library(tidyverse)
+library(kableExtra)
 
-data <-  read_csv(file = here('Raw Data','COVID Main Database All_07-8-21.csv'))
-
-
-```
-
-## Write generic function to grab counts and percentages
-
-```{r}
-
-getCountsAndPercentages <- function(data, variable_start_string) {
-  
-  data %>%
-    
-    # get data, pivot to long
-    select(record_id, starts_with(variable_start_string)) %>%
-    pivot_longer(cols = starts_with(variable_start_string),names_to = 'Timepoint', names_prefix = variable_start_string) %>%
-    mutate(value = fct_explicit_na(as.character(value))) %>%
-
-    
-    # tally Trues, Falses, Missing, compute percentages, combine counts and percentages
-    group_by(Timepoint, value) %>%
-    tally() %>%
-    mutate(percentage = format(round((n/sum(n))*100,2), nsmall = 2)) %>% 
-    mutate(`Count (%)` = str_c(n, " (",percentage,')')) %>%
-    
-    # drop separate count and percentage columns
-    select(-n, -percentage) %>%
-    
-    # pivot so columns are TRUE, FALSE, MISSING
-    pivot_wider(names_from = value, values_from = `Count (%)`)
-}
+data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
 
 ```
 
-## Self-cancelled appointments
-
-```{r}
-
-Any_Self_Cancelled_Appt_counts <- getCountsAndPercentages(data, "Any_Self_Cancelled_Appt_T")
-
-```
-
-## Provider cancelled appointments
-
-```{r}
-
-Any_Provider_Cancelled_Appt_counts <- getCountsAndPercentages(data, "Any_Provider_Cancelled_Appt_T")
-
-```
-
-
-# Create table
-
-The table currently requires a little editing before it's publication ready, but the values printed match those computed elsewhere by Lauren
+# Countsof Any Self-cancellations
 
 ```{r}
 
 
-bind_cols(Any_Provider_Cancelled_Appt_counts, Any_Self_Cancelled_Appt_counts) %>%
-  select(-Timepoint...5, -`(Missing)...4`, -`(Missing)...8`) %>%
-  mutate(Timepoint = as.character(Timepoint...1)) %>%
-  mutate(Timepoint = str_replace_all(Timepoint, c("1" = "May 2020",
-                                                  "2" = "June 2020",
-                                                  "3" = "November 2020"))) %>%
-  select(-Timepoint...1) %>%
-  relocate(TRUE...3, .before = FALSE...2) %>%
-  relocate(TRUE...7, .before = FALSE...6) %>%
-  relocate(Timepoint, .before = TRUE...3) %>%
-  
-  kable(col.names = c('Timepoint','Yes','No','Yes','No')) %>%
-  add_header_above(c(" ", "Had Provider Cancelled Appointment(s)" = 2, "Had Self-Cancelled Appointment(s)" = 2)) %>%
-  kable_classic(html_font = 'Times New Roman', full_width = FALSE)
+data %>%
+  select(record_id, starts_with("Any_Self_Cancelled")) %>%
+  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Self_Cancelled_Appt_T3,
+               names_to = c('Type','Timepoint'),
+               names_pattern = "(.*)_T(.)",
+               values_transform = list(value = as.character)
+              ) %>%
+  count(Timepoint,value) %>%
+  group_by(Timepoint) %>%
+  summarize(value = value,
+            n = n,
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(value == TRUE)
+
+
+```
+
+
+# Counts of Screening Cancellations Among Those With Self-Cancellations
+
+```{r}
+
+
+data %>%
+  select(record_id, starts_with("Any_Self_Cancelled"), starts_with("Any_Cancer_Screening_Cancellations")) %>%
+  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Cancer_Screening_Cancellations_T3,
+               names_to = c('Type','Timepoint'),
+               names_pattern = "(.*)_T(.)",
+               values_transform = list(value = as.character)
+              ) %>%
+    pivot_wider(names_from = Type) %>%
+  mutate(across(everything(), as.factor)) %>%
+  count(Timepoint, Any_Self_Cancelled_Appt, Any_Cancer_Screening_Cancellations) %>%
+  group_by(Timepoint, Any_Self_Cancelled_Appt) %>%
+   summarize(Any_Cancer_Screening_Cancellations = Any_Cancer_Screening_Cancellations,
+            n = n,
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(Any_Self_Cancelled_Appt == TRUE) %>%
+  filter(Any_Cancer_Screening_Cancellations == "Yes:Me")
+
+```
+# Counts of any provider cancellations
+
+```{r}
+
+
+data %>%
+  select(record_id, starts_with("Any_Provider_Cancelled")) %>%
+  pivot_longer(cols = Any_Provider_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3,
+               names_to = c('Type','Timepoint'),
+               names_pattern = "(.*)_T(.)",
+               values_transform = list(value = as.character)
+              ) %>%
+  count(Timepoint,value) %>%
+  group_by(Timepoint) %>%
+  summarize(value = value,
+            n = n,
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(value == TRUE)
+
+
+```
+
+
+# Counts of Screening Cancellations Among Those With Self-Cancellations
+
+```{r}
+
+
+data %>%
+  select(record_id, starts_with("Any_Provider_Cancelled"), starts_with("Any_Cancer_Screening_Cancellations")) %>%
+  pivot_longer(cols = Any_Provider_Cancelled_Appt_T1:Any_Cancer_Screening_Cancellations_T3,
+               names_to = c('Type','Timepoint'),
+               names_pattern = "(.*)_T(.)",
+               values_transform = list(value = as.character)
+              ) %>%
+    pivot_wider(names_from = Type) %>%
+  mutate(across(everything(), as.factor)) %>%
+  count(Timepoint, Any_Provider_Cancelled_Appt, Any_Cancer_Screening_Cancellations) %>%
+  group_by(Timepoint, Any_Provider_Cancelled_Appt) %>%
+   summarize(Any_Cancer_Screening_Cancellations = Any_Cancer_Screening_Cancellations,
+            n = n,
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(Any_Provider_Cancelled_Appt == TRUE) %>%
+  filter(Any_Cancer_Screening_Cancellations == "Yes:My healthcare provider")
 
 ```
