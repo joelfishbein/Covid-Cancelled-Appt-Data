@@ -14,76 +14,29 @@ library(pander)
 
 
 ```{r include=FALSE}
-
-data_all <- read_csv(file = here('Raw Data','COVID Main Database All_07-8-21.csv'))
   
-data <- 
-  data_all %>%
-  select(record_id, adh_cancer_apt_T1, adh_cancer_apt_T2, adh_cancer_apt_T3,
-         adh_cancer_you_T1, adh_cancer_you_T2, adh_cancer_you_T3,
-         adh_cancer_test_T1, adh_cancer_test_T2, adh_cancer_test_T3,
-         adh_cancer_test_who_T1, adh_cancer_test_who_T2, adh_cancer_test_who_T3) %>%
-  
-  mutate(adh_cancer_apt_T1 = factor(adh_cancer_apt_T1,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         adh_cancer_apt_T2 = factor(adh_cancer_apt_T2,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         adh_cancer_apt_T3 = factor(adh_cancer_apt_T3,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         # this variable has flipped labels for levels 2 and 3 compared to prior variables
-         adh_cancer_test_T1 = factor(adh_cancer_test_T1,
-                                     levels = c(0,1,2,3),
-                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
-                  adh_cancer_test_T2 = factor(adh_cancer_test_T2,
-                                     levels = c(0,1,2,3),
-                                       labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
-                  adh_cancer_test_T3 = factor(adh_cancer_test_T3,
-                                     levels = c(0,1,2,3),
-                                    labels = c('No','Yes', 'Not sure', 'I did not have anything scheduled')),
-         adh_cancer_you_T1 = factor(adh_cancer_you_T1,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         adh_cancer_you_T2 = factor(adh_cancer_you_T2,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-         adh_cancer_you_T3 = factor(adh_cancer_you_T3,
-                                         levels = c(0,1,2,3),
-                                         labels = c('No','Yes','Not Sure', 'I did not have anything scheduled')),
-    adh_cancer_test_who_T1 = fct_explicit_na(factor(adh_cancer_test_who_T1,
-                                         levels = c(1,2),
-                                         labels = c('Me','My healthcare provider'))),
-         adh_cancer_test_who_T2 = fct_explicit_na(factor(adh_cancer_test_who_T2,
-                                         levels = c(1,2),
-                                         labels = c('Me','My healthcare provider'))),
-         adh_cancer_test_who_T3 = fct_explicit_na(factor(adh_cancer_test_who_T3,
-                                         levels = c(1,2),
-                                         labels = c('Me','My healthcare provider')))) %>%
-  mutate(Any_Self_Cancelled_Appt_T1 = (adh_cancer_you_T1 == "Yes" | adh_cancer_test_who_T1 == "Me"),
-         Any_Self_Cancelled_Appt_T2 = (adh_cancer_you_T2 == "Yes" | adh_cancer_test_who_T2 == "Me"),
-         Any_Self_Cancelled_Appt_T3 = (adh_cancer_you_T3 == "Yes" | adh_cancer_test_who_T3 == "Me"),
-         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | adh_cancer_test_who_T1 == "My provider"),
-         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My provider"),
-         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My provider")) %>%
-  mutate(across(starts_with("Any_Self_Cancelled_Appt"), ~ as_factor(.x)))
+data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
   
 ```
-NOTE: I manually listwise-deleted rows for each individual test where an individual was missing data on missed appointments at one or both timepoints.
 
 # Generic function for formatting the data correctly and running McNemar's test
 
-Approach used here adapted from https://www.r-bloggers.com/2021/06/paired-test-for-dichotomous-data-mcnemars-test-in-r/
+Approach to set up McNemar's test with table() used here is adapted from https://www.r-bloggers.com/2021/06/paired-test-for-dichotomous-data-mcnemars-test-in-r/
 
 ```{r}
 
-runMcNemarsTest <- function(var1, var2) {
-  data_table <- table(var1, var2)
+setupMcNemarsTest <- function(var1, var2) {
   
-  fit <- mcnemar.test(data_table)
+  # remove cases with missing data at either timepoint
+  my_data <- tibble(var1, var2) %>%
+    filter(!is.na(var1)) %>%
+    filter(!is.na(var2))
   
-  return(fit)
+  
+  
+  data_table <- table(my_data$var1, my_data$var2)
+  
+  return(data_table)
   
 }
 
@@ -95,7 +48,8 @@ runMcNemarsTest <- function(var1, var2) {
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T2)
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T2) %>%
+  mcnemar.test()
 
 ```
 
@@ -104,7 +58,8 @@ runMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T2
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Self_Cancelled_Appt_T2, data$Any_Self_Cancelled_Appt_T3)
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T2, data$Any_Self_Cancelled_Appt_T3) %>%
+  mcnemar.test()
 
 
 ```
@@ -113,7 +68,8 @@ runMcNemarsTest(data$Any_Self_Cancelled_Appt_T2, data$Any_Self_Cancelled_Appt_T3
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T3)
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T3) %>%
+  mcnemar.test()
 
 
 ```
@@ -123,7 +79,8 @@ runMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T3
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T2)
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T2) %>%
+  mcnemar.test()
 
 ```
 
@@ -132,7 +89,8 @@ runMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Provider_Cancelled_Appt_T2, data$Any_Provider_Cancelled_Appt_T3)
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T2, data$Any_Provider_Cancelled_Appt_T3) %>%
+  mcnemar.test()
 
 ```
 
@@ -140,7 +98,8 @@ runMcNemarsTest(data$Any_Provider_Cancelled_Appt_T2, data$Any_Provider_Cancelled
 
 ```{r echo=FALSE}
 
-runMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T3)
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T3) %>%
+  mcnemar.test()
 
 ```
 
