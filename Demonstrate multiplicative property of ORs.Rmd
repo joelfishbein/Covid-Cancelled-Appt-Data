@@ -1,0 +1,65 @@
+---
+title: "Demonstrate multiplicative property of ORs"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+```{r}
+# I believe lavaan is not being used, thus delete?
+#library(lavaan) 
+library(psych)
+library(here)
+library(tidyverse)
+
+data <-  read_csv(file = here('Raw Data','COVID Main Database All_07-8-21.csv'))
+
+#setwd("/Users/laurenfinkelstein/Desktop/Arch Lab/COVID Appt Paper/Data")
+#data <-read.csv("CURRENT Full Covid Data.csv", header=T)
+#View(data)
+```
+
+```{r}
+
+anxiety2 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2, data=data, family=binomial)
+
+summary(anxiety2)
+```
+
+
+
+```{r}
+
+data <- data %>%
+  mutate(gad7_tot_T2_divide_by_5 = gad7_tot_T2/5)
+
+anxiety2_divide_by_5 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2_divide_by_5, data=data, family=binomial)
+
+summary(anxiety2_divide_by_5)
+```
+
+
+```{r}
+0.11278 * 5
+
+```
+
+
+```{r}
+multi2 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2+ cfi_mean_T2 + cfi_survivor_mean_T2, data=data, family=binomial)
+summary(multi2)
+
+```
+
+```{r}
+multi2_divide_gad_by_5 <- glm(Any_Self_Cancelled_Appt_T2 ~ gad7_tot_T2_divide_by_5 + cfi_mean_T2 + cfi_survivor_mean_T2, data=data, family=binomial)
+summary(multi2_divide_gad_by_5)
+
+```
+
+```{r}
+0.11792 * 5
+
+```
+
