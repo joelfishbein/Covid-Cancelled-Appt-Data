@@ -15,6 +15,30 @@ data_all <- read_csv(file = '~/On HD/Raw data/Covid study/COVID Main Database Al
 
 ```
 
+# Write generic function to handle cancelled appt and screening data
+
+```{r}
+
+handle_appt_and_screening_data <- function(Any_Cancelled_Appt, Any_Cancelled_Screening){
+  return(
+    ifelse(
+      # return NA for anyone who didn't have a cancelled appt of some kind
+      (Any_Cancelled_Appt == FALSE), 
+      NA, 
+      
+      # if there is a cancelled appt and a cancelled screening, TRUE
+      ifelse((Any_Cancelled_Appt == TRUE & Any_Cancelled_Screening == TRUE), 
+                     TRUE, 
+                     
+                     # if there is a cancelled appt but NO cancelled screening, FALSE
+                     
+                     FALSE)
+    )
+  )
+}
+
+```
+
 # Create missed appointment variables
 
 We are going to combine four variables to look at any self-cancelled appts or any provider-cancelled appts:
@@ -26,7 +50,7 @@ Variables:
 2. adh_cancer_you: Over the last 2 months have you cancelled or postponed scheduled visits or services for physical health or mental health?
 
 
-* Self-cancelled appts (screening or any other kind of appt)*
+* Provider-cancelled appts (screening or any other kind of appt)*
 
 Variables:
 1. adh_cancer_test_who: Who postponed or cancelled your routine cancer screening? Count "My provider" answers as provider-cancelled screening apts
@@ -83,38 +107,66 @@ data_to_export <-
                                          labels = c('Me','My healthcare provider'))),
          adh_cancer_test_who_T3 = fct_explicit_na(factor(adh_cancer_test_who_T3,
                                          levels = c(1,2),
-                                         labels = c('Me','My healthcare provider')))) %>%
+                                         labels = c('Me','My healthcare provider'))),
+  
+  Any_Cancer_Screening_Cancellations_T1 = fct_cross(adh_cancer_test_T1, adh_cancer_test_who_T1),
+  Any_Cancer_Screening_Cancellations_T2 = fct_cross(adh_cancer_test_T2, adh_cancer_test_who_T2),
+  Any_Cancer_Screening_Cancellations_T3 = fct_cross(adh_cancer_test_T3, adh_cancer_test_who_T3)) %>%
   
   # create missed appointment variables
-  mutate(Any_Self_Cancelled_Appt_T1 = (adh_cancer_you_T1 == "Yes" | adh_cancer_test_who_T1 == "Me"),
-         Any_Self_Cancelled_Appt_T2 = (adh_cancer_you_T2 == "Yes" | adh_cancer_test_who_T2 == "Me"),
-         Any_Self_Cancelled_Appt_T3 = (adh_cancer_you_T3 == "Yes" | adh_cancer_test_who_T3 == "Me"),
-         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | adh_cancer_test_who_T1 == "My healthcare provider"),
-         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | adh_cancer_test_who_T2 == "My healthcare provider"),
-         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | adh_cancer_test_who_T3 == "My healthcare provider"))
+  mutate(Any_Self_Cancelled_Appt_T1 = (adh_cancer_you_T1 == "Yes" | Any_Cancer_Screening_Cancellations_T1 == "Yes:Me"),
+         Any_Self_Cancelled_Appt_T2 = (adh_cancer_you_T2 == "Yes" | Any_Cancer_Screening_Cancellations_T2 == "Yes:Me"),
+         Any_Self_Cancelled_Appt_T3 = (adh_cancer_you_T3 == "Yes" | Any_Cancer_Screening_Cancellations_T3== "Yes:Me"),
+         Any_Provider_Cancelled_Appt_T1 = (adh_cancer_apt_T1 == "Yes" | Any_Cancer_Screening_Cancellations_T1 == "Yes:My healthcare provider"),
+         Any_Provider_Cancelled_Appt_T2 = (adh_cancer_apt_T2 == "Yes" | Any_Cancer_Screening_Cancellations_T2 == "Yes:My healthcare provider"),
+         Any_Provider_Cancelled_Appt_T3 = (adh_cancer_apt_T3 == "Yes" | Any_Cancer_Screening_Cancellations_T3== "Yes:My healthcare provider")) %>%
   
+  # added in order to compute McNemar's test with cancelled screening data
+  
+  # create new variables, which are self-cancelled cancer screenings (T/F at each timepoint) and provider-cancelled screenings (T/F at each timepoint)
+  mutate(Any_Self_Cancelled_Screening_T1 = ifelse(Any_Cancer_Screening_Cancellations_T1 == "Yes:Me", TRUE, FALSE),
+         Any_Self_Cancelled_Screening_T2 = ifelse(Any_Cancer_Screening_Cancellations_T2 == "Yes:Me", TRUE, FALSE),
+         Any_Self_Cancelled_Screening_T3 = ifelse(Any_Cancer_Screening_Cancellations_T3 == "Yes:Me", TRUE, FALSE),
+         
+         Any_Provider_Cancelled_Screening_T1 = ifelse(Any_Cancer_Screening_Cancellations_T1 == "Yes:My healthcare provider", TRUE, FALSE),
+         Any_Provider_Cancelled_Screening_T2 = ifelse(Any_Cancer_Screening_Cancellations_T2 == "Yes:My healthcare provider", TRUE, FALSE),
+         Any_Provider_Cancelled_Screening_T3 = ifelse(Any_Cancer_Screening_Cancellations_T3 == "Yes:My healthcare provider", TRUE, FALSE)) %>%
+  
+  # create composite variables that are: has (self/provider) cancellation DUE TO cancelled screening
+  # uses generic function written above
+  
+  mutate(Self_Cancellation_Due_To_Screening_T1 = map2_lgl(Any_Self_Cancelled_Appt_T1, 
+                                                             Any_Self_Cancelled_Screening_T1,
+                                                              handle_appt_and_screening_data),
+         Self_Cancellation_Due_To_Screening_T2 = map2_lgl(Any_Self_Cancelled_Appt_T2, 
+                                                             Any_Self_Cancelled_Screening_T2,
+                                                              handle_appt_and_screening_data),
+         Self_Cancellation_Due_To_Screening_T3 = map2_lgl(Any_Self_Cancelled_Appt_T3, 
+                                                             Any_Self_Cancelled_Screening_T3,
+                                                              handle_appt_and_screening_data),
+         
+         Provider_Cancellation_Due_To_Screening_T1 = map2_lgl(Any_Provider_Cancelled_Appt_T1, 
+                                                 Any_Provider_Cancelled_Screening_T1,
+                                                 handle_appt_and_screening_data),
+Provider_Cancellation_Due_To_Screening_T2 = map2_lgl(Any_Provider_Cancelled_Appt_T2, 
+                                                 Any_Provider_Cancelled_Screening_T2,
+                                                 handle_appt_and_screening_data),
+Provider_Cancellation_Due_To_Screening_T3 = map2_lgl(Any_Provider_Cancelled_Appt_T3, 
+                                                 Any_Provider_Cancelled_Screening_T3,
+                                                 handle_appt_and_screening_data))
+         
 
 ```
 
+
+
+## Export for joel
 
 ```{r}
 
-
-data_to_export %>%
-  select(Any_Provider_Cancelled_Appt_T1, adh_cancer_test_who_T1, adh_cancer_apt_T1) %>%
-  filter(adh_cancer_test_who_T1 == "My healthcare provider") %>%
-  arrange(Any_Provider_Cancelled_Appt_T1)
+write_rds(data_to_export, here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
 
 ```
 
-```{r}
-
-
-data_to_export %>%
-  select(Any_Provider_Cancelled_Appt_T2, adh_cancer_test_who_T2, adh_cancer_apt_T2) %>%
-  filter(adh_cancer_test_who_T2 == "My healthcare provider") %>%
-  arrange(Any_Provider_Cancelled_Appt_T2)
-
-```
 
 
