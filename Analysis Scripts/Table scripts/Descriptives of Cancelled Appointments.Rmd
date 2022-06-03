@@ -9,87 +9,86 @@ library(here)
 library(tidyverse)
 library(kableExtra)
 
-data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
-
-```
-
-# Countsof Any Self-cancellations
-
-```{r}
-
-
-data %>%
-  select(record_id, starts_with("Any_Self_Cancelled")) %>%
-  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Self_Cancelled_Appt_T3,
-               names_to = c('Type','Timepoint'),
-               names_pattern = "(.*)_T(.)",
-               values_transform = list(value = as.character)
-              ) %>%
-  count(Timepoint,value) %>%
-  group_by(Timepoint) %>%
-  summarize(value = value,
-            n = n,
-    percentage = n / sum(n)) %>%
-  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
-  filter(value == TRUE)
-
+data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds")) %>%
+  select(starts_with(c("record_id","Any_")))
+  
 
 ```
 
 
 # Counts of Screening Cancellations Among Those With Self-Cancellations
 
+## Create tibble of self-cancellation data
+
 ```{r}
 
-
+self_cancelled_table <-
 data %>%
   select(record_id, starts_with("Any_Self_Cancelled"), starts_with("Any_Cancer_Screening_Cancellations")) %>%
+  
+  # pivot to tidy
   pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Cancer_Screening_Cancellations_T3,
                names_to = c('Type','Timepoint'),
                names_pattern = "(.*)_T(.)",
                values_transform = list(value = as.character)
               ) %>%
+  
+  # pivot to long by timpeoint and participant, wide by type of cancellation (any vs screening)
     pivot_wider(names_from = Type) %>%
-  mutate(across(everything(), as.factor)) %>%
-  count(Timepoint, Any_Self_Cancelled_Appt, Any_Cancer_Screening_Cancellations) %>%
-  group_by(Timepoint, Any_Self_Cancelled_Appt) %>%
-   summarize(Any_Cancer_Screening_Cancellations = Any_Cancer_Screening_Cancellations,
-            n = n,
-    percentage = n / sum(n)) %>%
-  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
-  filter(Any_Self_Cancelled_Appt == TRUE) %>%
-  filter(Any_Cancer_Screening_Cancellations == "Yes:Me")
-
-```
-# Counts of any provider cancellations
-
-```{r}
-
-
-data %>%
-  select(record_id, starts_with("Any_Provider_Cancelled")) %>%
-  pivot_longer(cols = Any_Provider_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3,
-               names_to = c('Type','Timepoint'),
-               names_pattern = "(.*)_T(.)",
-               values_transform = list(value = as.character)
-              ) %>%
-  count(Timepoint,value) %>%
-  group_by(Timepoint) %>%
-  summarize(value = value,
-            n = n,
-    percentage = n / sum(n)) %>%
-  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
-  filter(value == TRUE)
-
+  mutate(across(everything(), as.factor))   %>%
+  mutate(`Had Self Cancelled Screening` = 
+           fct_explicit_na(fct_collapse(Any_Cancer_Screening_Cancellations,
+                                        Yes = "Yes:Me",
+                                        No = c( "No:(Missing)","Not sure:(Missing)",
+                                                "Yes:My healthcare provider","I did not have anything scheduled:(Missing)")), na_level = "No"))
 
 ```
 
 
-# Counts of Screening Cancellations Among Those With Self-Cancellations
+## Create summary table of counts of self-cancellations
 
 ```{r}
 
+counts_of_self_cancellations <- self_cancelled_table %>%
+  count(Timepoint, Any_Self_Cancelled_Appt, `Had Self Cancelled Screening`) %>%
+  group_by(Timepoint)%>%
+    filter(!is.na(Any_Self_Cancelled_Appt)) %>%
+   summarize(Any_Self_Cancelled_Appt = Any_Self_Cancelled_Appt,
+     `Had Self Cancelled Screening` = `Had Self Cancelled Screening`,
+            n = n,
+            `Number Participants With Self-Cancelled Anything At This Timepoint` = sum(n),
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(Any_Self_Cancelled_Appt == TRUE)
 
+
+```
+
+## Plot counts
+
+```{r}
+
+counts_of_self_cancellations %>%
+  ggplot() +
+  stat_summary(aes(x = Timepoint, y = `Percentage to Report`, fill = `Had Self Cancelled Screening`),
+    geom = "bar") +
+  ylim(0,100)
+
+
+
+
+```
+
+
+
+
+# Counts of Screening Cancellations Among Those With Provider Cancellations
+
+## Create tibble of provider cancellation data
+
+```{r}
+
+Provider_cancelled_table <-
 data %>%
   select(record_id, starts_with("Any_Provider_Cancelled"), starts_with("Any_Cancer_Screening_Cancellations")) %>%
   pivot_longer(cols = Any_Provider_Cancelled_Appt_T1:Any_Cancer_Screening_Cancellations_T3,
@@ -98,14 +97,141 @@ data %>%
                values_transform = list(value = as.character)
               ) %>%
     pivot_wider(names_from = Type) %>%
-  mutate(across(everything(), as.factor)) %>%
-  count(Timepoint, Any_Provider_Cancelled_Appt, Any_Cancer_Screening_Cancellations) %>%
-  group_by(Timepoint, Any_Provider_Cancelled_Appt) %>%
-   summarize(Any_Cancer_Screening_Cancellations = Any_Cancer_Screening_Cancellations,
+  mutate(across(everything(), as.factor))   %>%
+  mutate(`Had Provider Cancelled Screening` = 
+           fct_explicit_na(fct_collapse(Any_Cancer_Screening_Cancellations,
+                                        Yes = "Yes:My healthcare provider",
+                                        No = c("No:(Missing)","Not sure:(Missing)",
+                                               "Yes:Me","I did not have anything scheduled:(Missing)")), na_level = "No"))
+
+```
+
+
+## Create summary table of counts of provider cancellations
+
+```{r}
+
+counts_of_Provider_cancellations <- Provider_cancelled_table %>%
+  count(Timepoint, Any_Provider_Cancelled_Appt, `Had Provider Cancelled Screening`) %>%
+  group_by(Timepoint)%>%
+    filter(!is.na(Any_Provider_Cancelled_Appt)) %>%
+   summarize(Any_Provider_Cancelled_Appt = Any_Provider_Cancelled_Appt,
+     `Had Provider Cancelled Screening` = `Had Provider Cancelled Screening`,
             n = n,
+            `Number Participants With Provider Cancelled Anything At This Timepoint` = sum(n),
     percentage = n / sum(n)) %>%
   mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
-  filter(Any_Provider_Cancelled_Appt == TRUE) %>%
-  filter(Any_Cancer_Screening_Cancellations == "Yes:My healthcare provider")
+  filter(Any_Provider_Cancelled_Appt == TRUE)
+
+counts_of_Provider_cancellations 
+
+```
+
+## Plot counts
+
+```{r}
+
+counts_of_Provider_cancellations %>%
+  ggplot() +
+  stat_summary(aes(x = Timepoint, y = `Percentage to Report`, fill = `Had Provider Cancelled Screening`),
+    geom = "bar") +
+  ylim(0,100)
+
+
+
+
+```
+
+
+
+
+
+# Counts of any provider cancellations
+
+
+## Print counts
+```{r}
+
+Provider_cancelled_table %>%
+  count(Timepoint, Any_Provider_Cancelled_Appt, Any_Cancer_Screening_Cancellations) %>%
+  group_by(Timepoint, Any_Provider_Cancelled_Appt) %>%
+    filter(!is.na(Any_Provider_Cancelled_Appt)) %>%
+   summarize(Any_Cancer_Screening_Cancellations = Any_Cancer_Screening_Cancellations,
+            n = n,
+            `Number Participants With Provider-Cancelled Anything At This Timepoint` = sum(n),
+    percentage = n / sum(n)) %>%
+  mutate(`Percentage to Report` = round(percentage * 100,2)) %>%
+  filter(Any_Provider_Cancelled_Appt == TRUE)# %>%
+  #filter(Any_Cancer_Screening_Cancellations == "Yes:My healthcare provider")
+
+```
+
+# Combine Self- and Provider Cancelled Data
+
+## Setup count tables
+
+```{r}
+
+counts_of_self_cancellations.combine <- counts_of_self_cancellations %>%
+  mutate(type = 'Self-Cancellation') %>%
+  rename(`Had Self/Provider Cancelled Screening` = `Had Self Cancelled Screening`) %>%
+  select(Timepoint, `Had Self/Provider Cancelled Screening`, n, `Percentage to Report`, type)
+
+counts_of_provider_cancellations.combine <- counts_of_Provider_cancellations %>%
+  mutate(type = 'Provider Cancellation') %>%
+  rename(`Had Self/Provider Cancelled Screening` = `Had Provider Cancelled Screening`)  %>%
+  select(Timepoint, `Had Self/Provider Cancelled Screening`, n, `Percentage to Report`, type)
+
+```
+
+```{r}
+ combined_data <- bind_rows(counts_of_self_cancellations.combine, counts_of_provider_cancellations.combine ) %>%
+  
+  
+  mutate(
+    # rename timepoints to be more informative
+    Timepoint = forcats::fct_recode(Timepoint, 
+                                         "May 2020" = "1",
+                                         "June/July 2020" = "2",
+                                         "November 2020" = "3"),
+    
+    # re-order other factors so they display in desired order in plot
+    
+    #`Had Self/Provider Cancelled Screening` = fct_relevel(`Had Self/Provider Cancelled Screening`, "Yes"),
+    type = forcats::fct_relevel(type, "Self-Cancellation")) %>%
+  
+  # rename levels of this variable so that they display on plot
+  mutate(type = forcats::fct_recode(type, 
+                                         "Participants with Self-Cancellation(s)" = "Self-Cancellation",
+                                    "Participants with Provider Cancellation(s)" = "Provider Cancellation"))
+
+
+
+```
+## Plot
+
+```{r}
+combined_plot <- 
+combined_data %>%
+    ggplot() +
+  stat_summary(aes(x = Timepoint, y = `Percentage to Report`, fill = `Had Self/Provider Cancelled Screening`),
+    geom = "bar")  +
+  scale_fill_manual(values = c("grey","black")) +
+  ylim(0, 100) +
+  ylab('%') +
+  theme_minimal() +
+  xlab('') +
+  theme(legend.position = 'bottom') +
+  facet_grid(cols = vars(type)) +
+    theme(strip.text.y = element_text(angle = 0))
+
+combined_plot 
+```
+
+## Save plot
+
+```{r}
+
+ggplot2::ggsave(plot = combined_plot, filename = here('Plots','Counts of Cancellations Plot.jpg'), dpi = 300,  width = 7, height = 5, units = "in")
 
 ```
