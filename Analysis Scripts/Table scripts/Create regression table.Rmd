@@ -128,7 +128,8 @@ multiple_predictor.anxiety.table <- tibble( models =
 
 ```{r}
 
-joined_table <- left_join(x = single_predictor.table, multiple_predictor.anxiety.table, by = 'term')
+joined_table <- left_join(single_predictor.table, multiple_predictor.anxiety.table, by = 'term') %>%
+  left_join(multiple_predictor.depression.table, by = 'term')
 
 joined_table
 
@@ -158,6 +159,9 @@ joined_table %>%
                       "$p$",
                       "OR",
                       "95% CI",
+                      "$p$",
+                      "OR",
+                      "95% CI",
                       "$p$")) %>%
     
   kable_classic(html_font = 'Times New Roman', full_width = FALSE) %>%
@@ -168,7 +172,8 @@ joined_table %>%
   kableExtra::group_rows(group_label = "November 2020", start_row = 9, end_row = 12, label_row_css = "text-align: center;") %>%
   
   add_header_above(c(" " = 1, "Single Predictor Models" = 3, 
-                     "Multiple Predictor Models Including Anxiety" = 3))
+                     "Multiple Predictor Models Including Anxiety" = 3,
+                     "Multiple Predictor Models Including Depression" = 3))
 
 
 ```
