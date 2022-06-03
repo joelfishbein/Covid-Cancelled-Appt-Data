@@ -1,0 +1,95 @@
+---
+title: "Raw scores of covariates at each timepoint"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+Purpose: For revise and resubmit, per reviewer request, compute scores of each regression model covariate at each timepoint
+
+```{r}
+library(tidyverse)
+library(here)
+library(pander)
+
+data <- read_rds(file = here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
+
+data %>%
+    select(record_id, 
+         starts_with("gad7_tot_T"), 
+         starts_with("phq8_tot_T"), 
+         starts_with("cfi_mean_T"),
+         starts_with("cfi_survivor_mean_T")) 
+```
+
+
+```{r}
+
+data.long <- data %>%
+  select(record_id, 
+         starts_with("gad7_tot_T"), 
+         starts_with("phq8_tot_T"), 
+         starts_with("cfi_mean_T"),
+         starts_with("cfi_survivor_mean_T"))   %>%
+  pivot_longer(cols = gad7_tot_T1:cfi_survivor_mean_T3,
+               names_pattern = "(.*)_T(.)",
+               names_to = c("variable","timepoint"))
+
+
+
+```
+
+# Check that long and wide datasets match up as expected
+
+Looks good on 6/3/22
+
+```{r}
+
+data %>%
+    select(record_id, 
+         starts_with("gad7_tot_T"), 
+         starts_with("phq8_tot_T"), 
+         starts_with("cfi_mean_T"),
+         starts_with("cfi_survivor_mean_T")) %>%
+  
+  filter(record_id == 6)
+
+```
+
+
+```{r}
+data.long %>%
+  filter(record_id == 6)
+
+```
+# Compute summary statistics
+
+```{r}
+
+data.long %>%
+  group_by(variable, timepoint) %>%
+  summarise(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE)) %>%
+  mutate(across(.cols = mean:sd, round, 2)) %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_classic(full_width = FALSE, html_font = "Times New Roman")
+```
+
+
+
+# Display scores graphically
+
+NOTE TO LAUREN: We may not actually want to display the data this way but I increasingly like displays like this as opposed to summary stats. They give you a full sense of the range and how the range and distribution change over time. If you and Joanna like this display I can clean it up with better variable names, etc.
+
+Black dot indicates mean, thick black line indicates 67% quantile, thin black line indicates 95% quantile.
+
+```{r}
+
+data.long %>%
+  ggplot(aes(x = value)) +
+  ggdist::stat_dotsinterval() +
+  facet_grid(timepoint ~ variable, scales = 'free_x')
+  
+```

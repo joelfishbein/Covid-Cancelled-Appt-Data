@@ -1,6 +1,10 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Examine rates of missing appointments"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
 
 # Read in
@@ -15,6 +19,64 @@ data <- read_rds(file = here("Generated data","data_with_correct_summary_cancell
 ```
 
 # Examine specific variables
+
+## For revise and resubmit, any cancelled appointments (incl screenings) or screenings specifically
+
+### Any Cancelled Appt T1
+```{r}
+
+table(data$Any_Cancelled_Appt_T1)
+
+89/(57+89)
+
+```
+
+### Any Cancelled Appt  T2
+```{r}
+
+table(data$Any_Cancelled_Appt_T2)
+
+75/(65+75)
+
+```
+
+### T3
+```{r}
+
+table(data$Any_Cancelled_Appt_T3)
+
+35/(85+35)
+
+```
+
+
+### Any Cancelled Screening T1
+```{r}
+
+table(data$Any_Cancelled_Screening_T1)
+
+31/(114+31)
+
+```
+
+### Any Cancelled Screening  T2
+```{r}
+
+table(data$Any_Cancelled_Screening_T2)
+
+18/(122+18)
+
+```
+
+### T3
+```{r}
+
+table(data$Any_Cancelled_Screening_T3)
+
+5/(114+5)
+
+```
+
 
 ## Self-cancelled cancer screenings out of total
 
@@ -36,7 +98,7 @@ table(data$Any_Self_Cancelled_Screening_T2)
 
 ```
 
-### T2
+### T3
 ```{r}
 
 table(data$Any_Self_Cancelled_Screening_T3)
@@ -65,7 +127,7 @@ table(data$Any_Provider_Cancelled_Screening_T2)
 
 ```
 
-### T2
+### T3
 ```{r}
 
 table(data$Any_Provider_Cancelled_Screening_T3)
@@ -73,3 +135,5 @@ table(data$Any_Provider_Cancelled_Screening_T3)
 2/(117+2)
 
 ```
+
+
