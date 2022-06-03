@@ -1,0 +1,130 @@
+---
+title: "Descriptives of Cancelled Appointments Table"
+output: html_notebook
+---
+
+```{r}
+
+library(here)
+library(tidyverse)
+library(kableExtra)
+
+```
+
+
+# Cancelled Screenings
+
+```{r}
+
+screening_cancellations.data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds")) %>%
+  
+  # get columns of interest
+  select(record_id, 
+         starts_with("Any_Self_Cancelled_Screening"),
+         starts_with("Any_Provider_Cancelled_Screening")) %>%
+  
+  # pivot to longer for easier handling
+  pivot_longer(cols = Any_Self_Cancelled_Screening_T1:Any_Provider_Cancelled_Screening_T3,
+               names_to = c('Self or Provider','Timepoint'),
+               names_pattern = "Any_(.*)_Cancelled_Screening_T(.)",
+               values_transform = list(value = as.character)) %>%
+      filter(!is.na(value)) %>%
+  group_by(`Self or Provider`,Timepoint) %>%
+  count(value)  %>%
+  mutate(percentage = 100*(n / sum(n))) %>%
+  
+  # setup Category as a more explicitly named variable
+  rename(Category = value) %>%
+  mutate(Category = as.factor(
+    ifelse(Category == TRUE, 
+           "Had Cancelled Cancer Screening(s)",
+           "Cancelled Appts But No Screenings"))) %>%
+    
+  mutate(Timepoint = factor(Timepoint, levels = c(1:3), labels = c("May 2020","June/July 2020", "November 2020"))) %>%
+  
+  # clean up for easy of merging
+  ungroup() %>%
+    select(`Self or Provider`,Category, Timepoint, n, percentage) %>%
+  filter(Category == "Had Cancelled Cancer Screening(s)")
+
+```
+
+```{r}
+
+any_cancellation.data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds")) %>%
+  
+  # get columsn of interest
+  select(record_id, 
+         starts_with("Any_Self_Cancelled_Appt"),
+         starts_with("Any_Provider_Cancelled_Appt")) %>%
+ 
+    # pivot to longer for easier handling
+  pivot_longer(cols = Any_Self_Cancelled_Appt_T1:Any_Provider_Cancelled_Appt_T3,
+               names_to = c('Self or Provider','Timepoint'),
+               names_pattern = "Any_(.*)_Cancelled_Appt_T(.)",
+               values_transform = list(value = as.character)) %>%
+      filter(!is.na(value)) %>%
+  group_by(`Self or Provider`,Timepoint) %>%
+  count(value)  %>%
+  mutate(percentage = 100*(n / sum(n))) %>%
+  
+  # setup Category as a more explicitly named variable
+  rename(Category = value) %>%
+  mutate(Category = as.factor(
+    ifelse(Category == TRUE, 
+           "Had Cancelled Appointment(s) or Screening(s)",
+           "No Cancellations"))) %>%
+    
+  mutate(Timepoint = factor(Timepoint, levels = c(1:3), labels = c("May 2020","June/July 2020", "November 2020"))) %>%
+  
+  # clean up for easy of merging
+  ungroup() %>%
+    select(`Self or Provider`,Category, Timepoint, n, percentage) %>%
+  filter(Category == "Had Cancelled Appointment(s) or Screening(s)")
+
+```
+
+# Combine
+
+```{r}
+all_data <- bind_rows(any_cancellation.data, screening_cancellations.data) %>%
+  arrange(`Self or Provider`,Timepoint, Category) %>%
+  
+  # re-order "Self" and "Provider"
+  mutate(`Self or Provider` = forcats::fct_rev(
+    factor(`Self or Provider`, labels = c('Provider-Cancelled','Self-Cancelled'))))
+
+all_data
+```
+
+# Plot
+
+```{r}
+
+plot <- all_data %>%
+  ggplot(aes(x = Timepoint,
+             y = percentage)) +
+  geom_col() +
+  ylim(0,100) +
+  ylab('%') +
+  xlab('') +
+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  facet_grid(rows = vars(`Self or Provider`), cols = vars(`Category`)) +
+  
+    # increase font size
+
+  theme(text = element_text(size = 12)) +
+      theme(axis.text.x = element_text(size = 9))
+
+  
+plot  
+
+ggsave(plot = plot,
+       filename = here('Plots','Count of Cancellations 2x2.jpg'), 
+       dpi = 300, width = 7, height = 7, units = 'in')
+```
+
+
+

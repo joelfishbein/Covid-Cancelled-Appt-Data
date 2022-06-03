@@ -1,0 +1,264 @@
+---
+title: "Run McNemar's test and print contingency tables"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  word_document: default
+  pdf_document: default
+---
+
+Purpose: run McNemar's tests to compare provider and self-cancelled screenings and appointments at different timepoints.
+
+```{r include=FALSE}
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(pander)
+
+```
+
+
+```{r include=FALSE}
+  
+data <- read_rds(here("Generated data","data_with_correct_summary_cancellation_variables.rds"))
+  
+```
+
+# Generic function for formatting the data correctly and running McNemar's test
+
+Approach to set up McNemar's test with table() used here is adapted from https://www.r-bloggers.com/2021/06/paired-test-for-dichotomous-data-mcnemars-test-in-r/
+
+```{r}
+
+setupMcNemarsTest <- function(var1, var2) {
+  
+  # remove cases with missing data at either timepoint
+  my_data <- tibble(var1, var2) %>%
+    filter(!is.na(var1)) %>%
+    filter(!is.na(var2))
+  
+  
+  
+  data_table <- table(my_data$var1, my_data$var2)
+  
+  return(data_table)
+  
+}
+
+
+printContingencyTable <- function(var1, var2, self_or_provider, screening_or_appointment) {
+  
+  true_text <- str_c("Had ", self_or_provider ,"-cancelled ", screening_or_appointment)
+  false_text <- str_c("No ", self_or_provider ,"-cancelled ", screening_or_appointment)
+  
+  # get counts
+  tibble(var1, var2) %>%
+    mutate(participant = c(1:length(var1))) %>%
+    count(var1, var2) %>%
+    
+    # remove cases with missing data at either timepoint
+    filter(!is.na(var1) & !is.na(var2)) %>%
+    
+    # create N (%) table
+    mutate(`%` = finalfit::round_tidy(100*(n/sum(n)),2)) %>%
+    mutate(`N (%)` = str_c(n, ' (',`%`,"%",')')) %>%
+    
+    # clean up output so that it looks like a contingency table
+    select(-n, -`%`) %>%
+    arrange(-var1, -var2) %>%
+    pivot_wider(values_from = `N (%)`, names_from = var2) %>%
+    
+    # rename TRUE/FALSE
+    mutate(var1 = ifelse(var1 == TRUE, true_text,false_text)) %>%
+    
+    # print in html
+    kableExtra::kable(col.names = c(' ',true_text,false_text)) %>%
+    kableExtra::kable_classic(html_font = 'Times New Roman', full_width=FALSE) %>%
+    group_rows(group_label = 'Time Var1', start_row = 1, end_row = 2, bold = FALSE) %>%
+    kableExtra::add_header_above(c(" " = 1, 'Time Var2' = 2 )) %>%
+    
+    return()
+}
+    
+```
+
+
+
+# Self cancelled appts
+
+## ANY Appt
+
+### T1 with T2
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T2) %>%
+  mcnemar.test()
+
+ 
+printContingencyTable(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T2,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "appointment(s)")
+```
+
+
+### T2 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T2, data$Any_Self_Cancelled_Appt_T3) %>%
+  mcnemar.test()
+
+printContingencyTable(data$Any_Self_Cancelled_Appt_T2, data$Any_Self_Cancelled_Appt_T3,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "appointment(s)")
+```
+
+### T1 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T3) %>%
+  mcnemar.test()
+
+printContingencyTable(data$Any_Self_Cancelled_Appt_T1, data$Any_Self_Cancelled_Appt_T3,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "appointment(s)")
+```
+
+
+
+## SCREENING
+
+
+### T1 with T2
+
+```{r echo=FALSE}
+
+table(data$Any_Self_Cancelled_Screening_T1)
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Screening_T1, data$Any_Self_Cancelled_Screening_T2) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Self_Cancelled_Screening_T1, data$Any_Self_Cancelled_Screening_T2,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "screening(s)")
+```
+
+
+### T2 with T3
+
+```{r echo=FALSE}
+
+table(data$Any_Self_Cancelled_Screening_T2)
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Screening_T2, data$Any_Self_Cancelled_Screening_T3) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Self_Cancelled_Screening_T2, data$Any_Self_Cancelled_Screening_T3,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "screening(s)")
+```
+
+### T1 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Self_Cancelled_Screening_T1, data$Any_Self_Cancelled_Screening_T3) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Self_Cancelled_Screening_T1, data$Any_Self_Cancelled_Screening_T3,
+                    self_or_provider = "self",
+                    screening_or_appointment =  "screening(s)")
+```
+
+
+
+# Provider cancelled appts
+## T1 with T2
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T2) %>%
+  mcnemar.test()
+
+printContingencyTable(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T2,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "appointment(s)")
+
+```
+
+
+## T2 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T2, data$Any_Provider_Cancelled_Appt_T3) %>%
+  mcnemar.test()
+
+printContingencyTable(data$Any_Provider_Cancelled_Appt_T2, data$Any_Provider_Cancelled_Appt_T3,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "appointment(s)")
+
+```
+
+## T1 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T3) %>%
+  mcnemar.test()
+
+printContingencyTable(data$Any_Provider_Cancelled_Appt_T1, data$Any_Provider_Cancelled_Appt_T3,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "appointment(s)")
+
+```
+
+
+
+
+## SCREENING
+
+
+### T1 with T2
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Screening_T1, data$Any_Provider_Cancelled_Screening_T2) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Provider_Cancelled_Screening_T1, data$Any_Provider_Cancelled_Screening_T2,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "screening(s)")
+```
+
+
+### T2 with T3
+
+```{r echo=FALSE}
+
+table(data$Any_Provider_Cancelled_Screening_T2)
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Screening_T2, data$Any_Provider_Cancelled_Screening_T3) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Provider_Cancelled_Screening_T2, data$Any_Provider_Cancelled_Screening_T3,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "screening(s)")
+```
+
+### T1 with T3
+
+```{r echo=FALSE}
+
+setupMcNemarsTest(data$Any_Provider_Cancelled_Screening_T1, data$Any_Provider_Cancelled_Screening_T3) %>%
+  mcnemar.test()
+ 
+printContingencyTable(data$Any_Provider_Cancelled_Screening_T1, data$Any_Provider_Cancelled_Screening_T3,
+                    self_or_provider = "provider",
+                    screening_or_appointment =  "screening(s)")
+
+
+```
